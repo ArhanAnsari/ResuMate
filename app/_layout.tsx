@@ -1,24 +1,49 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import '@/global.css';
+import '@/src/core/config/ignoreWarnings';
+import { useAuthStore } from '@/src/features/auth/store/authStore';
+import { Slot, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useEffect } from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function useProtectedRoute(isAuthenticated: boolean) {
+  const segments = useSegments();
+  const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    if (!rootNavigationState?.key) return;
+
+    const timeout = setTimeout(() => {
+      const inAuthGroup = segments[0] === '(auth)';
+
+      if (
+        // If the user is not signed in and the initial segment is not anything in the auth group.
+        !isAuthenticated &&
+        !inAuthGroup
+      ) {
+        // Redirect to the sign-in page.
+        router.replace('/login');
+      } else if (isAuthenticated && inAuthGroup) {
+        // Redirect away from the sign-in page.
+        router.replace('/(tabs)/index');
+      }
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [isAuthenticated, segments, rootNavigationState]);
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  // We might want a dedicated 'isHydrated' state if using persist, 
+  // but for now, we assume swift storage access or default false triggers login.
+  
+  useProtectedRoute(isAuthenticated);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <>
+      <Slot />
+      <StatusBar style="dark" />
+    </>
   );
 }

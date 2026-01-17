@@ -1,98 +1,95 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useAuthStore } from '@/src/features/auth/store/authStore';
+import { EducationSection } from '@/src/features/resume/components/EducationSection';
+import { PersonalInfoForm } from '@/src/features/resume/components/PersonalInfoForm';
+import { useResumeStore } from '@/src/features/resume/store/resumeStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
+import React, { useEffect, useMemo } from 'react';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function BuilderScreen() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { 
+    resumes, 
+    activeResumeId, 
+    createResume,
+    setActiveResume,
+  } = useResumeStore();
+  const { colorScheme } = useColorScheme();
 
-export default function HomeScreen() {
+  const resumeList = useMemo(() => Object.values(resumes), [resumes]);
+  const activeResume = activeResumeId ? resumes[activeResumeId] : null;
+
+  // Auto-select or create resume logic
+  useEffect(() => {
+    if (!user) return; // Wait for user to be logged in (or at least loaded)
+
+    // If no resumes exist, create one
+    if (resumeList.length === 0) {
+       createResume('My First Resume');
+    } else if (resumeList.length > 0 && !activeResumeId) {
+      // If resumes exist but none selected, select the first one
+      setActiveResume(resumeList[0].id);
+    }
+  }, [user, resumeList.length, activeResumeId]); 
+
+  if (!activeResume) {
+    return (
+      <View className="flex-1 justify-center items-center bg-background">
+        <ActivityIndicator size="large" className="text-primary" />
+        <Text className="mt-4 text-muted-foreground font-medium">Preparing Builder...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <View className="px-4 py-3 border-b border-border bg-card flex-row justify-between items-center shadow-sm">
+        <View>
+          <Text className="text-xl font-bold text-foreground">Resume Builder</Text>
+          <Text className="text-xs text-muted-foreground">Editing: {activeResume.title}</Text>
+        </View>
+        <TouchableOpacity 
+          className="bg-primary/10 p-2 rounded-full active:bg-primary/20"
+          onPress={() => router.push('/resumes')}
+        >
+          <Ionicons name="list" size={20} className="text-primary" color={colorScheme === 'dark' ? '#fff' : '#000'} />
+        </TouchableOpacity>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <ScrollView className="flex-1" contentContainerClassName="p-4 pb-24 gap-6">
+        <View className="gap-2 mb-2">
+          <Text className="text-2xl font-bold text-foreground">
+            Let's build your resume
+          </Text>
+          <Text className="text-muted-foreground">
+            Fill in the sections below. Your changes are saved automatically.
+          </Text>
+        </View>
+
+        {/* Sections */}
+        <PersonalInfoForm />
+        <EducationSection />
+        
+        {/* Placeholder for future sections */}
+        <View className="bg-card p-6 rounded-2xl border border-dashed border-border items-center justify-center py-10">
+          <Text className="text-muted-foreground text-center mb-2">More sections coming soon</Text>
+          <Text className="text-xs text-muted-foreground/60 text-center">(Experience, Skills, Projects)</Text>
+        </View>
+      </ScrollView>
+
+      {/* Floating Action Button for Preview */}
+      <View className="absolute bottom-6 right-6">
+        <TouchableOpacity 
+          className="bg-primary h-14 w-14 rounded-full items-center justify-center shadow-lg active:scale-95 transition-transform"
+          onPress={() => router.push('/modal')}
+        >
+          <Ionicons name="eye" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
