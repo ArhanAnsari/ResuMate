@@ -1,54 +1,41 @@
 import "@/global.css";
 import "@/src/core/config/ignoreWarnings";
-import { useAuthStore } from "@/store/authStore";
-import {
-  Slot,
-  useRootNavigationState,
-  useRouter,
-  useSegments,
-} from "expo-router";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-
-function useProtectedRoute(isAuthenticated: boolean) {
-  const segments = useSegments();
-  const router = useRouter();
-  const rootNavigationState = useRootNavigationState();
-
-  useEffect(() => {
-    if (!rootNavigationState?.key) return;
-
-    const timeout = setTimeout(() => {
-      const inAuthGroup = segments[0] === "(auth)";
-
-      if (
-        // If the user is not signed in and the initial segment is not anything in the auth group.
-        !isAuthenticated &&
-        !inAuthGroup
-      ) {
-        // Redirect to the sign-in page.
-        router.replace("/login");
-      } else if (isAuthenticated && inAuthGroup) {
-        // Redirect away from the sign-in page.
-        router.replace("/(tabs)");
-      }
-    }, 0);
-
-    return () => clearTimeout(timeout);
-  }, [isAuthenticated, segments, rootNavigationState]);
-}
+import { View } from "react-native";
 
 export default function RootLayout() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  // We might want a dedicated 'isHydrated' state if using persist,
-  // but for now, we assume swift storage access or default false triggers login.
+  const { isAuthenticated, initialize, isLoading } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
 
-  useProtectedRoute(isAuthenticated);
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const inAppGroup = segments[0] === "(app)";
+
+    if (isAuthenticated && !inAppGroup) {
+      router.replace("/(app)/(tabs)");
+    } else if (!isAuthenticated && !inAuthGroup) {
+      router.replace("/(auth)/sign-in");
+    }
+  }, [isAuthenticated, segments, isLoading]);
+
+  if (isLoading) {
+    return <View className="flex-1 bg-slate-50 dark:bg-slate-950" />;
+  }
 
   return (
     <>
-      <Slot />
-      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }} />
+      <StatusBar style="auto" />
     </>
   );
 }
