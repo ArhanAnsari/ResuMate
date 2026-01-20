@@ -1,5 +1,5 @@
 import { ResumeData } from "@/interfaces/resume";
-import { databases } from "@/libs/appwrite";
+import { tablesDB } from "@/libs/appwrite";
 import { ID, Query } from "appwrite";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
@@ -17,7 +17,7 @@ export const ResumeService = {
 
     try {
       // 1. Fetch remote resumes
-      const response = await databases.listDocuments(
+      const response = await tablesDB.listDocuments(
         DATABASE_ID,
         COLLECTION_ID,
         [Query.equal("userId", userId)],
@@ -70,7 +70,7 @@ export const ResumeService = {
 
             if (remoteMatch) {
               // Update
-              await databases.updateDocument(
+              await tablesDB.updateDocument(
                 DATABASE_ID,
                 COLLECTION_ID,
                 remoteMatch.$id,
@@ -78,7 +78,7 @@ export const ResumeService = {
               );
             } else {
               // Create
-              await databases.createDocument(
+              await tablesDB.createDocument(
                 DATABASE_ID,
                 COLLECTION_ID,
                 ID.unique(),
