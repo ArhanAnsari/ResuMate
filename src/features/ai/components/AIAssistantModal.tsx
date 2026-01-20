@@ -1,4 +1,4 @@
-import { AIService } from "@/services/aiService";
+import { AIService } from "@/services/ai.service";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { COLORS, SPACING } from "@/src/core/theme";
 import { MaterialIcons } from "@expo/vector-icons";

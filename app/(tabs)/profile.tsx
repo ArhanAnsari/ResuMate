@@ -1,4 +1,4 @@
-import { AIService } from "@/services/aiService";
+import { AIService } from "@/services/ai.service";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
 import { COLORS } from "@/src/core/theme";
