@@ -3,28 +3,28 @@ import { tablesDB } from "@/libs/appwrite";
 import { ID, Query } from "appwrite";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_RESUMES_COLLECTION_ID!;
+const TABLE_ID = process.env.EXPO_PUBLIC_APPWRITE_RESUMES_COLLECTION_ID!;
 
 export const ResumeService = {
   async syncResumes(
     localResumes: Record<string, ResumeData>,
     userId: string,
   ): Promise<Record<string, ResumeData>> {
-    if (!DATABASE_ID || !COLLECTION_ID) {
+    if (!DATABASE_ID || !TABLE_ID) {
       console.warn("Sync skipped: Database configuration missing");
       return localResumes; // Offline mode effectively
     }
 
     try {
       // 1. Fetch remote resumes
-      const response = await tablesDB.listDocuments(
-        DATABASE_ID,
-        COLLECTION_ID,
-        [Query.equal("userId", userId)],
-      );
+      const response = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: TABLE_ID,
+        queries: [Query.equal("userId", userId)],
+      });
 
       const remoteResumesMap: Record<string, ResumeData & { $id: string }> = {};
-      response.documents.forEach((doc: any) => {
+      response.rows.forEach((doc: any) => {
         // Parse the JSON content field where we store the full object
         // We assume we store a 'content' string attribute with JSON
         if (doc.content) {
@@ -70,20 +70,20 @@ export const ResumeService = {
 
             if (remoteMatch) {
               // Update
-              await tablesDB.updateDocument(
-                DATABASE_ID,
-                COLLECTION_ID,
-                remoteMatch.$id,
-                payload,
-              );
+              await tablesDB.updateRow({
+                databaseId: DATABASE_ID,
+                tableId: TABLE_ID,
+                rowId: remoteMatch.$id,
+                data: payload,
+              });
             } else {
               // Create
-              await tablesDB.createDocument(
-                DATABASE_ID,
-                COLLECTION_ID,
-                ID.unique(),
-                payload,
-              );
+              await tablesDB.createRow({
+                databaseId: DATABASE_ID,
+                tableId: TABLE_ID,
+                rowId: ID.unique(),
+                data: payload,
+              });
             }
           }
         },
