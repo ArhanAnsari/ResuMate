@@ -1,5 +1,5 @@
 import { ResumeData } from "@/interfaces/resume";
-import { databases } from "@/src/core/api/appwrite";
+import { databases } from "@/libs/appwrite";
 import { ID, Query } from "appwrite";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
