@@ -3,7 +3,7 @@ import {
   LoginCredentials,
   RegisterCredentials,
   UserProfile,
-} from "@/src/types/auth"; // Need to create types
+} from "@/src/interfaces/auth"; // Need to create types
 import { ID, Models } from "appwrite";
 
 export const AuthService = {
