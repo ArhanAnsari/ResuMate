@@ -65,6 +65,7 @@ export default function ResumeEditor() {
       setData({ ...data, summary: result });
     } catch (error) {
       Alert.alert("AI Error", "Failed to generate summary");
+      console.error(error);
     } finally {
       setAiLoading(false);
     }

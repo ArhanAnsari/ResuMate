@@ -1,7 +1,7 @@
 import { APP_CONFIG } from "@/src/core/config/app";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const GEMINI_API_KEY_KEY = "gemini_api_key";
+const GEMINI_API_KEY_KEY = process.env.EXPO_GEMINI_API_KEY_KEY!;
 
 interface GenerationResponse {
   text: string;
