@@ -20,12 +20,12 @@ export default function ResumesScreen() {
   const handleCreateNew = () => {
     const newId = createResume("New Resume");
     setActiveResume(newId);
-    router.push("/(tabs)/index");
+    router.push("/(tabs)");
   };
 
   const handleSelectResume = (id: string) => {
     setActiveResume(id);
-    router.push("/(tabs)/index");
+    router.push("/(tabs)");
   };
 
   const handleDeleteResume = (id: string) => {

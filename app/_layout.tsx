@@ -30,7 +30,7 @@ function useProtectedRoute(isAuthenticated: boolean) {
         router.replace("/login");
       } else if (isAuthenticated && inAuthGroup) {
         // Redirect away from the sign-in page.
-        router.replace("/(tabs)/index");
+        router.replace("/(tabs)");
       }
     }, 0);
 
