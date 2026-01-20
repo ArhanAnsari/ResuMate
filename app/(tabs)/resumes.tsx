@@ -1,6 +1,6 @@
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { COLORS } from "@/src/core/theme";
-import { useResumeStore } from "@/src/features/resume/store/resumeStore";
+import { useResumeStore } from "@/store/resumeStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useMemo } from "react";

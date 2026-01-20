@@ -6,12 +6,11 @@ import {
   ResumeProfile,
   SkillItem,
 } from "@/interfaces/resume";
+import { ResumeService } from "@/services/resumeService";
 import { generateId } from "@/utils/id"; // I need to create this util
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-
-import { ResumeService } from "@/src/features/resume/services/resumeService";
 
 interface ResumeState {
   resumes: Record<string, ResumeData>;

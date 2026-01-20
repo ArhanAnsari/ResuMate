@@ -1,6 +1,6 @@
+import { AIService } from "@/services/aiService";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { COLORS, SPACING } from "@/src/core/theme";
-import { AIService } from "@/src/features/ai/services/aiService";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, Modal, StyleSheet, Text, TextInput, View } from "react-native";

@@ -2,7 +2,7 @@ import { EducationItem } from "@/interfaces/resume";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
 import { COLORS, LAYOUT, SPACING, TYPOGRAPHY } from "@/src/core/theme";
-import { useResumeStore } from "@/src/features/resume/store/resumeStore";
+import { useResumeStore } from "@/store/resumeStore";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 

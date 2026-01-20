@@ -3,10 +3,10 @@ import {
   RegisterCredentials,
   UserProfile,
 } from "@/interfaces/auth";
+import { AuthService } from "@/services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { AuthService } from "../services/authService";
 
 interface AuthState {
   user: UserProfile | null;

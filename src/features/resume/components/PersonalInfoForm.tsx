@@ -1,7 +1,7 @@
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
 import { COLORS, SPACING } from "@/src/core/theme";
 import { AIAssistantModal } from "@/src/features/ai/components/AIAssistantModal";
-import { useResumeStore } from "@/src/features/resume/store/resumeStore";
+import { useResumeStore } from "@/store/resumeStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";

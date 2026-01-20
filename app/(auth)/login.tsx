@@ -1,6 +1,6 @@
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, Text } from "react-native";
