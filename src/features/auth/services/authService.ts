@@ -1,9 +1,9 @@
-import { account } from "@/src/core/api/appwrite"; // Ensure this path is correct
 import {
   LoginCredentials,
   RegisterCredentials,
   UserProfile,
-} from "@/src/interfaces/auth"; // Need to create types
+} from "@/interfaces/auth"; // Need to create types
+import { account } from "@/src/core/api/appwrite"; // Ensure this path is correct
 import { ID, Models } from "appwrite";
 
 export const AuthService = {

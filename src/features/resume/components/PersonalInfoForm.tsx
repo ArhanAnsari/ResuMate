@@ -1,15 +1,15 @@
-import { COLORS, SPACING } from '@/src/core/theme';
-import { AIAssistantModal } from '@/src/features/ai/components/AIAssistantModal';
-import { useResumeStore } from '@/src/features/resume/store/resumeStore';
-import { PremiumInput } from '@/src/shared/components/ui/PremiumInput';
-import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PremiumInput } from "@/shared/components/ui/PremiumInput";
+import { COLORS, SPACING } from "@/src/core/theme";
+import { AIAssistantModal } from "@/src/features/ai/components/AIAssistantModal";
+import { useResumeStore } from "@/src/features/resume/store/resumeStore";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export const PersonalInfoForm: React.FC = () => {
   const activeResumeId = useResumeStore((state) => state.activeResumeId);
-  const profile = useResumeStore((state) => 
-    activeResumeId ? state.resumes[activeResumeId]?.profile : null
+  const profile = useResumeStore((state) =>
+    activeResumeId ? state.resumes[activeResumeId]?.profile : null,
   );
   const updateProfile = useResumeStore((state) => state.updateProfile);
 
@@ -21,23 +21,23 @@ export const PersonalInfoForm: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-        <TouchableOpacity 
-            style={styles.aiButton} 
-            onPress={() => setAiModalVisible(true)}
+        <TouchableOpacity
+          style={styles.aiButton}
+          onPress={() => setAiModalVisible(true)}
         >
-             <MaterialIcons name="auto-awesome" size={16} color={COLORS.primary} />
-             <Text style={styles.aiButtonText}>AI Assist</Text>
+          <MaterialIcons name="auto-awesome" size={16} color={COLORS.primary} />
+          <Text style={styles.aiButtonText}>AI Assist</Text>
         </TouchableOpacity>
       </View>
-      
-      <PremiumInput 
+
+      <PremiumInput
         label="Full Name"
         value={profile.fullName}
         onChangeText={(text) => updateProfile({ fullName: text })}
         placeholder="e.g. John Doe"
       />
-      
-      <PremiumInput 
+
+      <PremiumInput
         label="Email"
         value={profile.email}
         onChangeText={(text) => updateProfile({ email: text })}
@@ -45,7 +45,7 @@ export const PersonalInfoForm: React.FC = () => {
         keyboardType="email-address"
       />
 
-      <PremiumInput 
+      <PremiumInput
         label="Phone"
         value={profile.phone}
         onChangeText={(text) => updateProfile({ phone: text })}
@@ -53,18 +53,18 @@ export const PersonalInfoForm: React.FC = () => {
         keyboardType="phone-pad"
       />
 
-      <PremiumInput 
+      <PremiumInput
         label="Location"
         value={profile.location}
         onChangeText={(text) => updateProfile({ location: text })}
         placeholder="e.g. New York, NY"
       />
 
-      <AIAssistantModal 
+      <AIAssistantModal
         visible={aiModalVisible}
         onClose={() => setAiModalVisible(false)}
         onApply={(content) => {
-            console.log("AI Content Applied:", content);
+          console.log("AI Content Applied:", content);
         }}
         promptType="summary"
         initialPrompt="Write a professional summary for my resume..."
@@ -82,19 +82,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
   },
   aiButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     paddingVertical: 4,
     paddingHorizontal: 8,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   aiButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
   },
 });

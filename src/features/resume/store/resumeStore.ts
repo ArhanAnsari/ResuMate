@@ -5,8 +5,8 @@ import {
   ResumeData,
   ResumeProfile,
   SkillItem,
-} from "@/src/interfaces/resume";
-import { generateId } from "@/src/utils/id"; // I need to create this util
+} from "@/interfaces/resume";
+import { generateId } from "@/utils/id"; // I need to create this util
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";

@@ -1,20 +1,26 @@
-import { PremiumButton } from '@/src/shared/components/ui/PremiumButton';
-import { PremiumInput } from '@/src/shared/components/ui/PremiumInput';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '../store/authStore';
+import { PremiumButton } from "@/shared/components/ui/PremiumButton";
+import { PremiumInput } from "@/shared/components/ui/PremiumInput";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthStore } from "../store/authStore";
 
 export const RegisterScreen = () => {
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
   const isLoading = useAuthStore((state) => state.isLoading);
   const error = useAuthStore((state) => state.error);
-  
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
     if (!name || !email || !password) return;
@@ -27,18 +33,30 @@ export const RegisterScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, justifyContent: 'center' }}>
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 24,
+            justifyContent: "center",
+          }}
+        >
           <View className="mb-8 items-center">
-            <Text className="text-3xl font-bold text-text mb-2">Create Account</Text>
-            <Text className="text-base text-textSecondary text-center">Start building your professional resume today.</Text>
+            <Text className="text-3xl font-bold text-text mb-2">
+              Create Account
+            </Text>
+            <Text className="text-base text-textSecondary text-center">
+              Start building your professional resume today.
+            </Text>
           </View>
 
           <View className="w-full max-w-[600px] self-center">
-            {error && <Text className="text-error mb-4 text-center">{error}</Text>}
+            {error && (
+              <Text className="text-error mb-4 text-center">{error}</Text>
+            )}
 
             <PremiumInput
               label="Full Name"
@@ -66,19 +84,19 @@ export const RegisterScreen = () => {
             />
 
             <View className="mt-4">
-                <PremiumButton 
-                    title="Sign Up" 
-                    onPress={handleRegister} 
-                    isLoading={isLoading}
-                    size="lg"
-                />
+              <PremiumButton
+                title="Sign Up"
+                onPress={handleRegister}
+                isLoading={isLoading}
+                size="lg"
+              />
             </View>
 
             <PremiumButton
-                title="Already have an account? Sign In"
-                variant="ghost"
-                onPress={() => router.back()}
-                style={{ marginTop: 8 }}
+              title="Already have an account? Sign In"
+              variant="ghost"
+              onPress={() => router.back()}
+              style={{ marginTop: 8 }}
             />
           </View>
         </ScrollView>
@@ -86,4 +104,3 @@ export const RegisterScreen = () => {
     </SafeAreaView>
   );
 };
-
