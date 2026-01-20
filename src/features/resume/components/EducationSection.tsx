@@ -1,22 +1,23 @@
-import { COLORS, LAYOUT, SPACING, TYPOGRAPHY } from '@/src/core/theme';
-import { useResumeStore } from '@/src/features/resume/store/resumeStore';
-import { PremiumButton } from '@/src/shared/components/ui/PremiumButton';
-import { PremiumInput } from '@/src/shared/components/ui/PremiumInput';
-import { EducationItem } from '@/src/types/resume';
-import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { EducationItem } from "@/interfaces/resume";
+import { PremiumButton } from "@/shared/components/ui/PremiumButton";
+import { PremiumInput } from "@/shared/components/ui/PremiumInput";
+import { COLORS, LAYOUT, SPACING, TYPOGRAPHY } from "@/src/core/theme";
+import { useResumeStore } from "@/store/resumeStore";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const EMPTY_EDUCATION: EducationItem[] = [];
 
 export const EducationSection: React.FC = () => {
   const activeResumeId = useResumeStore((state) => state.activeResumeId);
-  
+
   // Use a stable selector or handle the fallback carefully to avoid infinite loops
   const educationList = useResumeStore((state) => {
-    if (!activeResumeId || !state.resumes[activeResumeId]) return EMPTY_EDUCATION;
+    if (!activeResumeId || !state.resumes[activeResumeId])
+      return EMPTY_EDUCATION;
     return state.resumes[activeResumeId].education || EMPTY_EDUCATION;
   });
-  
+
   const addEducation = useResumeStore((state) => state.addEducation);
   const updateEducation = useResumeStore((state) => state.updateEducation);
   const removeEducation = useResumeStore((state) => state.removeEducation);
@@ -25,9 +26,9 @@ export const EducationSection: React.FC = () => {
 
   const handleAddNew = () => {
     addEducation({
-      institution: '',
-      degree: '',
-      startDate: '',
+      institution: "",
+      degree: "",
+      startDate: "",
     });
     // Find the newly added item logic could go here to auto-expand,
     // but simplified, we assume the user scrolls to it or we render it in edit mode.
@@ -39,25 +40,26 @@ export const EducationSection: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Education</Text>
-        <PremiumButton 
-          title="+ Add" 
-          size="sm" 
-          variant="secondary" 
-          onPress={handleAddNew} 
+        <PremiumButton
+          title="+ Add"
+          size="sm"
+          variant="secondary"
+          onPress={handleAddNew}
         />
       </View>
 
-      {educationList && educationList.map((item) => (
-        <EducationItemCard 
-          key={item.id} 
-          item={item} 
-          onUpdate={(data) => updateEducation(item.id, data)}
-          onDelete={() => removeEducation(item.id)}
-        />
-      ))}
+      {educationList &&
+        educationList.map((item) => (
+          <EducationItemCard
+            key={item.id}
+            item={item}
+            onUpdate={(data) => updateEducation(item.id, data)}
+            onDelete={() => removeEducation(item.id)}
+          />
+        ))}
 
       {educationList?.length === 0 && (
-         <Text style={styles.emptyText}>No education added yet.</Text>
+        <Text style={styles.emptyText}>No education added yet.</Text>
       )}
     </View>
   );
@@ -77,7 +79,7 @@ const EducationItemCard: React.FC<{
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>Education Entry</Text>
         <TouchableOpacity onPress={onDelete}>
-            <Text style={styles.deleteText}>Remove</Text>
+          <Text style={styles.deleteText}>Remove</Text>
         </TouchableOpacity>
       </View>
 
@@ -86,30 +88,30 @@ const EducationItemCard: React.FC<{
         value={item.institution}
         onChangeText={(text) => onUpdate({ institution: text })}
       />
-      
+
       <PremiumInput
         label="Degree"
         value={item.degree}
         onChangeText={(text) => onUpdate({ degree: text })}
         placeholder="e.g. Bachelor of Science"
       />
-      
+
       <View style={styles.row}>
         <View style={styles.halfInput}>
-            <PremiumInput
-                label="Start Date"
-                value={item.startDate}
-                onChangeText={(text) => onUpdate({ startDate: text })}
-                placeholder="YYYY-MM"
-            />
+          <PremiumInput
+            label="Start Date"
+            value={item.startDate}
+            onChangeText={(text) => onUpdate({ startDate: text })}
+            placeholder="YYYY-MM"
+          />
         </View>
         <View style={styles.halfInput}>
-            <PremiumInput
-                label="End Date"
-                value={item.endDate || ''}
-                onChangeText={(text) => onUpdate({ endDate: text })}
-                placeholder="YYYY-MM or Present"
-            />
+          <PremiumInput
+            label="End Date"
+            value={item.endDate || ""}
+            onChangeText={(text) => onUpdate({ endDate: text })}
+            placeholder="YYYY-MM or Present"
+          />
         </View>
       </View>
     </View>
@@ -124,9 +126,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: SPACING.md,
   },
   sectionTitle: {
@@ -143,8 +145,8 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: SPACING.sm,
   },
   cardTitle: {
@@ -160,13 +162,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: COLORS.textTertiary,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
     padding: SPACING.md,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: SPACING.md,
   },
   halfInput: {

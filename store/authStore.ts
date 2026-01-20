@@ -1,8 +1,12 @@
-import { LoginCredentials, RegisterCredentials, UserProfile } from '@/src/types/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import { AuthService } from '../services/authService';
+import {
+  LoginCredentials,
+  RegisterCredentials,
+  UserProfile,
+} from "@/interfaces/auth";
+import { AuthService } from "@/services/auth.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface AuthState {
   user: UserProfile | null;
@@ -43,8 +47,8 @@ export const useAuthStore = create<AuthState>()(
           const user = await AuthService.register(credentials);
           set({ user, isAuthenticated: true, isLoading: false });
         } catch (error: any) {
-            set({ error: error.message, isLoading: false });
-            throw error;
+          set({ error: error.message, isLoading: false });
+          throw error;
         }
       },
 
@@ -54,8 +58,13 @@ export const useAuthStore = create<AuthState>()(
           await AuthService.logout();
           set({ user: null, isAuthenticated: false, isLoading: false });
         } catch (error: any) {
-            // Force logout state even if API fails
-            set({ user: null, isAuthenticated: false, isLoading: false, error: error.message });
+          // Force logout state even if API fails
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error.message,
+          });
         }
       },
 
@@ -69,16 +78,19 @@ export const useAuthStore = create<AuthState>()(
             set({ user: null, isAuthenticated: false });
           }
         } catch (error) {
-            set({ user: null, isAuthenticated: false });
+          set({ user: null, isAuthenticated: false });
         }
       },
 
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }), // Only persist user info
-    }
-  )
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }), // Only persist user info
+    },
+  ),
 );
