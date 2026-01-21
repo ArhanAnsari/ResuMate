@@ -39,6 +39,7 @@ export const AIAssistantModal: React.FC<AIAssistantProps> = ({
         Alert.alert("Configuration Missing", error.message);
       } else {
         Alert.alert("Error", "Failed to generate content. Please try again.");
+        console.error("AI Assistant Error:", error);
       }
     } finally {
       setLoading(false);

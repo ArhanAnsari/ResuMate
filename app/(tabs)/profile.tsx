@@ -2,7 +2,7 @@ import { AIService } from "@/services/ai.service";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
 import { COLORS } from "@/src/core/theme";
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { useResumeStore } from "@/store/resumeStore";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";

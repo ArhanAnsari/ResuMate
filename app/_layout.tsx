@@ -1,5 +1,4 @@
 import "@/global.css";
-import "@/src/core/config/ignoreWarnings";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";

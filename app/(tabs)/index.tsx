@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/src/features/auth/store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { EducationSection } from "@/src/features/resume/components/EducationSection";
 import { PersonalInfoForm } from "@/src/features/resume/components/PersonalInfoForm";
 import { useResumeStore } from "@/store/resumeStore";

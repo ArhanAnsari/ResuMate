@@ -12,19 +12,38 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    loadKey();
-  }, []);
+    // Only attempt to load the key if the user is authenticated.
+    // This prevents passing undefined user IDs to underlying services/DBs.
+    if (user) {
+      loadKey();
+    }
+  }, [user]);
 
   const loadKey = async () => {
-    const key = await AIService.getApiKey();
-    if (key) setApiKey(key);
+    try {
+      const key = await AIService.getApiKey();
+      if (key) setApiKey(key);
+    } catch (error) {
+      console.warn("Failed to load API key:", error);
+    }
   };
 
   const handleSaveKey = async () => {
+    if (!apiKey.trim()) {
+      Alert.alert("Error", "Please enter a valid API key");
+      return;
+    }
+
     setIsSaving(true);
-    await AIService.setApiKey(apiKey);
-    setIsSaving(false);
-    Alert.alert("Success", "API Key saved!");
+    try {
+      await AIService.setApiKey(apiKey);
+      Alert.alert("Success", "API Key saved!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to save API Key");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {
@@ -53,6 +72,7 @@ export default function Settings() {
           value={apiKey}
           onChangeText={setApiKey}
           secureTextEntry
+          autoCapitalize="none"
         />
         <Button
           title="Save API Key"
@@ -69,16 +89,7 @@ export default function Settings() {
         <Text className="text-center text-slate-400 mb-4">
           Logged in as {user?.email}
         </Text>
-        <Button
-          title="Sign Out"
-          onPress={handleLogout}
-          variant="secondary" // Using red/destructive color implies specific styling, but secondary is emerald. Use Ghost or Primary?
-          // Ah, my secondary was emerald. Let's stick to outline or something else.
-          // Or I can add a dedicated destructive variant later.
-          // Let's use outline for now.
-          // Wait, I defined variants earlier. 'ghost' might be too subtle.
-          // Outline is fine.
-        />
+        <Button title="Sign Out" onPress={handleLogout} variant="secondary" />
       </View>
     </SafeAreaView>
   );
