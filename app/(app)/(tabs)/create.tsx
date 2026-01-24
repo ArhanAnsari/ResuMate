@@ -1,27 +1,37 @@
 import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
+import { useToast } from "@/src/context/ToastContext";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { useResumeStore } from "@/src/store/useResumeStore";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Text } from "react-native";
+import { Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateResume() {
   const [title, setTitle] = useState("");
   const { user } = useAuthStore();
   const { createResume, isLoading } = useResumeStore();
+  const { hapticsEnabled } = useSettingsStore();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const handleCreate = async () => {
     if (!title.trim() || !user) return;
 
     try {
+      if (hapticsEnabled)
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       await createResume(user.$id, title);
+
+      showToast("Resume created successfully", "success");
       setTitle("");
       router.push("/(app)/(tabs)");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      showToast(error.message || "Failed to create resume", "error");
     }
   };
 

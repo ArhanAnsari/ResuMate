@@ -1,24 +1,45 @@
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
+import { CustomAlert } from "@/src/components/ui/CustomAlert";
+import { useToast } from "@/src/context/ToastContext";
+import { NotificationService } from "@/src/services/notifications/NotificationService";
+import { PDFService } from "@/src/services/pdf/PDFService";
 import { useAuthStore } from "@/src/store/useAuthStore";
+
 import { useResumeStore } from "@/src/store/useResumeStore";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    Alert,
-    FlatList,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ResumeDashboard() {
   const { user } = useAuthStore();
   const { resumes, fetchResumes, deleteResume, isLoading } = useResumeStore();
+  const { hapticsEnabled } = useSettingsStore();
+  const { showToast } = useToast();
   const router = useRouter();
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
+  const [selectedResume, setSelectedResume] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  // Keep track of open swipeable rows to close them when another opens
+  const openSwipeableRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
     if (user?.$id) {
@@ -26,50 +47,119 @@ export default function ResumeDashboard() {
     }
   }, [user]);
 
-  const handleDelete = (id: string) => {
-    Alert.alert("Delete Resume", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => deleteResume(id) },
-    ]);
+  const confirmDelete = (id: string) => {
+    setResumeToDelete(id);
+    setDeleteModalVisible(true);
+    if (hapticsEnabled)
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <Card className="mb-4">
-      <View className="flex-row justify-between items-start">
-        <View>
-          <Text className="text-lg font-bold text-slate-900 dark:text-white">
-            {item.title}
-          </Text>
-          <Text className="text-sm text-slate-500 mt-1">
-            Last updated: {new Date(item.$updatedAt).toLocaleDateString()}
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => handleDelete(item.$id)}
-          className="p-2"
-        >
-          <Ionicons name="trash-outline" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      </View>
-      <View className="flex-row mt-4 space-x-2">
-        <Button
-          title="Edit"
-          variant="outline"
-          size="sm"
-          onPress={() => router.push(`/(app)/resume/${item.$id}`)}
-          className="flex-1"
-        />
-        <Button
-          title="PDF"
-          variant="ghost"
-          size="sm"
-          onPress={() =>
-            Alert.alert("Coming Soon", "PDF Export will differ by template.")
+  const performDelete = async () => {
+    if (!resumeToDelete) return;
+
+    setDeleteModalVisible(false);
+    setOptionsModalVisible(false); // Close options if open
+
+    try {
+      await deleteResume(resumeToDelete);
+      showToast("Resume deleted successfully", "success");
+    } catch (error) {
+      showToast("Failed to delete resume", "error");
+    }
+    setResumeToDelete(null);
+  };
+  const handleExport = async (id: string) => {
+    const resume = resumes.find((r) => r.$id === id);
+    if (!resume) {
+      showToast("Resume not found", "error");
+      return;
+    }
+
+    setOptionsModalVisible(false);
+    showToast("Generating PDF...", "info");
+
+    try {
+      await PDFService.generateAndShare(resume);
+      if (hapticsEnabled)
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Send a local notification
+      await NotificationService.scheduleNotification(
+        "Export Successful",
+        `Your resume "${resume.title}" is ready.`,
+      );
+
+      showToast("Export successful", "success");
+    } catch (error) {
+      showToast("Failed to export PDF", "error");
+    }
+  };
+  const handleLongPress = (id: string, title: string) => {
+    if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setSelectedResume({ id, title });
+    setOptionsModalVisible(true);
+  };
+
+  const renderRightActions = (id: string) => {
+    return (
+      <TouchableOpacity
+        className="bg-red-500 justify-center items-center w-20 mb-4 ml-4 rounded-lg h-5/6 self-center"
+        onPress={() => confirmDelete(id)}
+      >
+        <Ionicons name="trash-outline" size={24} color="white" />
+      </TouchableOpacity>
+    );
+  };
+
+  const onSwipeableWillOpen = (swipeable: Swipeable) => {
+    if (openSwipeableRef.current && openSwipeableRef.current !== swipeable) {
+      openSwipeableRef.current.close();
+    }
+    openSwipeableRef.current = swipeable;
+    if (hapticsEnabled) Haptics.selectionAsync();
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    let swipeableRef: Swipeable | null = null;
+    // ... existing wrapper logic
+    return (
+      <Swipeable
+        ref={(ref) => {
+          swipeableRef = ref;
+        }}
+        renderRightActions={() => renderRightActions(item.$id)}
+        onSwipeableWillOpen={() => {
+          if (swipeableRef) {
+            onSwipeableWillOpen(swipeableRef);
           }
-        />
-      </View>
-    </Card>
-  );
+        }}
+        containerStyle={{ overflow: "visible" }}
+      >
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onLongPress={() => handleLongPress(item.$id, item.title)}
+          onPress={() => router.push(`/(app)/resume/${item.$id}`)}
+        >
+          <Card className="mb-4 bg-white dark:bg-slate-800">
+            <View className="flex-row justify-between items-center">
+              <View className="flex-1 pr-4">
+                <Text
+                  className="text-lg font-bold text-slate-900 dark:text-white"
+                  numberOfLines={1}
+                >
+                  {item.title}
+                </Text>
+                <Text className="text-sm text-slate-500 mt-1">
+                  Updated {new Date(item.$updatedAt).toLocaleDateString()}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+            </View>
+          </Card>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950 px-4 pt-4">
@@ -109,6 +199,95 @@ export default function ResumeDashboard() {
           />
         }
       />
+
+      <CustomAlert
+        visible={deleteModalVisible}
+        title="Delete Resume"
+        message="Are you sure you want to delete this resume? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="destructive"
+        onCancel={() => setDeleteModalVisible(false)}
+        onConfirm={performDelete}
+      />
+
+      {/* Quick Actions Modal */}
+      <Modal
+        transparent
+        visible={optionsModalVisible}
+        animationType="fade"
+        onRequestClose={() => setOptionsModalVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 justify-end bg-black/50"
+          activeOpacity={1}
+          onPress={() => setOptionsModalVisible(false)}
+        >
+          <View className="bg-white dark:bg-slate-900 rounded-t-3xl p-6 border-t border-slate-200 dark:border-slate-800">
+            <Text className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">
+              {selectedResume?.title}
+            </Text>
+
+            <TouchableOpacity
+              className="flex-row items-center p-4 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3"
+              onPress={() => {
+                setOptionsModalVisible(false);
+                if (selectedResume)
+                  router.push(`/(app)/resume/${selectedResume.id}`);
+              }}
+            >
+              <Ionicons
+                name="create-outline"
+                size={24}
+                className="text-slate-900 dark:text-white mr-3"
+              />
+              {/* NativeWind might not apply to Ionicons directly via className, using style or color prop is better but let's try strict props */}
+              <Text className="text-lg font-medium text-slate-900 dark:text-white">
+                Edit Resume
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center p-4 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3"
+              onPress={() => {
+                if (selectedResume) handleExport(selectedResume.id);
+              }}
+            >
+              <Ionicons
+                name="document-text-outline"
+                size={24}
+                className="text-slate-900 dark:text-white mr-3"
+              />
+              <Text className="text-lg font-medium text-slate-900 dark:text-white">
+                Export PDF
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl mb-6"
+              onPress={() => {
+                if (selectedResume) confirmDelete(selectedResume.id);
+              }}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={24}
+                color="#EF4444"
+                style={{ marginRight: 12 }}
+              />
+              <Text className="text-lg font-medium text-red-500">
+                Delete Resume
+              </Text>
+            </TouchableOpacity>
+
+            <Button
+              title="Cancel"
+              variant="ghost"
+              onPress={() => setOptionsModalVisible(false)}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
