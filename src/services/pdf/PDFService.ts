@@ -5,6 +5,17 @@ export class PDFService {
   static async generateAndShare(resume: any) {
     if (!resume) throw new Error("No resume data provided");
 
+    // Parse data if it's a string (Appwrite stores JSON as string)
+    let resumeData = resume.data;
+    if (typeof resumeData === "string") {
+      try {
+        resumeData = JSON.parse(resumeData);
+      } catch (e) {
+        console.error("Failed to parse resume data", e);
+        resumeData = {};
+      }
+    }
+
     const html = `
             <!DOCTYPE html>
             <html>
@@ -29,12 +40,12 @@ export class PDFService {
             </head>
             <body>
                 <div class="header">
-                    <h1>${resume.data?.profile?.fullName || resume.title || "Resume"}</h1>
+                    <h1>${resumeData?.profile?.fullName || resume.title || "Resume"}</h1>
                     <div class="contact-info">
                         ${[
-                          resume.data?.profile?.email,
-                          resume.data?.profile?.phone,
-                          resume.data?.profile?.location,
+                          resumeData?.profile?.email,
+                          resumeData?.profile?.phone,
+                          resumeData?.profile?.location,
                         ]
                           .filter(Boolean)
                           .join(" • ")}
@@ -42,22 +53,22 @@ export class PDFService {
                 </div>
 
                 ${
-                  resume.data?.summary
+                  resumeData?.summary
                     ? `
                 <div class="section">
                     <h2>Professional Summary</h2>
-                    <p>${resume.data.summary}</p>
+                    <p>${resumeData.summary}</p>
                 </div>
                 `
                     : ""
                 }
 
                 ${
-                  resume.data?.experience?.length > 0
+                  resumeData?.experience?.length > 0
                     ? `
                 <div class="section">
                     <h2>Experience</h2>
-                    ${resume.data.experience
+                    ${resumeData.experience
                       .map(
                         (exp: any) => `
                         <div class="item">
@@ -77,11 +88,11 @@ export class PDFService {
                 }
 
                 ${
-                  resume.data?.education?.length > 0
+                  resumeData?.education?.length > 0
                     ? `
                 <div class="section">
                     <h2>Education</h2>
-                    ${resume.data.education
+                    ${resumeData.education
                       .map(
                         (edu: any) => `
                         <div class="item">
@@ -100,12 +111,12 @@ export class PDFService {
                 }
 
                  ${
-                   resume.data?.skills?.length > 0
+                   resumeData?.skills?.length > 0
                      ? `
                 <div class="section">
                     <h2>Skills</h2>
                     <div class="skills-list">
-                        ${resume.data.skills
+                        ${resumeData.skills
                           .map(
                             (skill: string) => `
                             <span class="skill-tag">${skill}</span>

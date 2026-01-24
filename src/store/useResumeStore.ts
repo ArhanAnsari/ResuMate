@@ -36,12 +36,39 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const initialData: any = {
-        // Using any temporarily or matching proper type
-        profile: { fullName: "", email: "", phone: "", location: "" },
-        summary: "",
-        experience: [],
-        education: [],
-        skills: [],
+        profile: {
+          fullName: "Your Name",
+          email: "your.email@example.com",
+          phone: "+1 234 567 8900",
+          location: "City, Country",
+        },
+        summary:
+          "Driven and motivated professional with a proven track record of success. Committed to continuous learning and contributing to team goals.",
+        experience: [
+          {
+            position: "Job Title",
+            company: "Company Name",
+            startDate: "Jan 2023",
+            endDate: "Present",
+            description:
+              "Lead initiatives to improve operational efficiency. Collaborated with cross-functional teams to deliver high-quality projects on time.",
+          },
+        ],
+        education: [
+          {
+            school: "University Name",
+            degree: "Bachelor of Science in Computer Science",
+            startDate: "2018",
+            endDate: "2022",
+          },
+        ],
+        skills: [
+          "JavaScript",
+          "React Native",
+          "TypeScript",
+          "Problem Solving",
+          "Communication",
+        ],
       };
 
       await appwrite.databases.createDocument(

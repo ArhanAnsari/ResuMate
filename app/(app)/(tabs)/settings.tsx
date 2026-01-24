@@ -3,23 +3,36 @@ import { Input } from "@/src/components/ui/Input";
 import { useToast } from "@/src/context/ToastContext";
 import { AIService } from "@/src/services/ai/gemini";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { useProfileStore } from "@/src/store/useProfileStore";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, Switch, Text, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
   const { user, logout } = useAuthStore();
+  const { profile, fetchProfile } = useProfileStore();
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
   const { showToast } = useToast();
+  const router = useRouter();
   const [apiKey, setApiKey] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadKey();
+      if (user.$id) fetchProfile(user.$id);
     }
   }, [user]);
 
@@ -80,6 +93,40 @@ export default function Settings() {
       </View>
 
       <ScrollView className="flex-1 px-6">
+        <SectionHeader title="Account" />
+        <View className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 mb-2">
+          <TouchableOpacity
+            onPress={() => router.push("/profile")}
+            className="flex-row justify-between items-center p-4"
+          >
+            <View className="flex-row items-center gap-3">
+              {profile?.avatarUrl ? (
+                <Image
+                  source={{ uri: profile.avatarUrl }}
+                  className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-100 dark:border-slate-700"
+                  contentFit="cover"
+                  transition={500}
+                />
+              ) : (
+                <View className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full w-12 h-12 items-center justify-center">
+                  <Text className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                    {profile?.fullName?.[0]?.toUpperCase() ||
+                      user?.name?.[0]?.toUpperCase() ||
+                      "U"}
+                  </Text>
+                </View>
+              )}
+              <View>
+                <Text className="text-base font-bold text-slate-900 dark:text-white">
+                  {profile?.fullName || user?.name || "User"}
+                </Text>
+                <Text className="text-xs text-slate-500">{user?.email}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
         <SectionHeader title="Preferences" />
         <View className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
           <View className="flex-row justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800">

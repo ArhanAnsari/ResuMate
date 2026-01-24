@@ -9,6 +9,7 @@ export const APP_CONFIG = {
     },
     BUCKET: {
       EXPORTS: "exports",
+      AVATARS: "avatars",
     },
     FUNCTIONS: {
       AI_GENERATE: "697472580038b88c51d2",

@@ -1,12 +1,34 @@
 import "@/global.css";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import * as Notifications from "expo-notifications";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import * as Notifications from 'expo-notifications';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://e1e6c042928f81e715b24e2ed8fcfa9b@o4508228539645952.ingest.us.sentry.io/4510764539183104',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration({
+      colorScheme: "dark",
+    })],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // Initialize Notification Handler
 Notifications.setNotificationHandler({
