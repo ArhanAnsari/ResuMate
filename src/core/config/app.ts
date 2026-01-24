@@ -10,9 +10,13 @@ export const APP_CONFIG = {
     BUCKET: {
       EXPORTS: "exports",
     },
+    FUNCTIONS: {
+      AI_GENERATE: "697472580038b88c51d2",
+    },
   },
   GEMINI: {
     MODEL_ID: "gemini-3-pro-preview",
+    API_KEY_STORAGE_KEY: "gemini_api_key",
   },
   LINKS: {
     PRIVACY: "https://example.com/privacy",

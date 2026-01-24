@@ -1,3 +1,4 @@
+import { ResumePreviewModal } from "@/src/components/ResumePreviewModal";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
@@ -17,6 +18,7 @@ export default function ResumeEditor() {
   const [data, setData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     fetchResume();
@@ -62,7 +64,18 @@ export default function ResumeEditor() {
       // Construct prompt based on other data
       const context = `Experience: ${JSON.stringify(data.experience)}. Skills: ${JSON.stringify(data.skills)}`;
       const result = await AIService.enhanceResumeSection(context, "summary");
-      setData({ ...data, summary: result });
+
+      Alert.alert(
+        "AI Enhancement",
+        `Here is the improved summary:\n\n${result}`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Apply Change",
+            onPress: () => setData({ ...data, summary: result }),
+          },
+        ],
+      );
     } catch (error) {
       Alert.alert("AI Error", "Failed to generate summary");
       console.error(error);
@@ -95,6 +108,14 @@ export default function ResumeEditor() {
           onPress={saveResume}
           loading={isSaving}
           size="sm"
+        />
+      </View>
+
+      <View className="px-4 py-2">
+        <Button
+          title="Preview Resume"
+          variant="outline"
+          onPress={() => setShowPreview(true)}
         />
       </View>
 
@@ -144,6 +165,12 @@ export default function ResumeEditor() {
 
         <View className="h-20" />
       </ScrollView>
+
+      <ResumePreviewModal
+        visible={showPreview}
+        onClose={() => setShowPreview(false)}
+        data={data}
+      />
     </SafeAreaView>
   );
 }

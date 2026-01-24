@@ -48,6 +48,7 @@ export interface SkillItem {
 }
 
 export interface ResumeData {
+  summary: any;
   id: string;
   title: string; // e.g. "Software Engineer Resume"
   lastModified: number;

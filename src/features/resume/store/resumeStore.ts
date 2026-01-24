@@ -72,6 +72,7 @@ export const useResumeStore = create<ResumeState>()(
           experience: [],
           projects: [],
           skills: [],
+          summary: undefined
         };
         
         set((state) => ({

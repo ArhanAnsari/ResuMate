@@ -1,0 +1,13 @@
+{
+  "name": "ai-generate",
+  "version": "1.0.0",
+  "description": "Appwrite Function to generate content using Gemini AI",
+  "main": "src/main.js",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
