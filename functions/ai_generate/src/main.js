@@ -29,7 +29,7 @@ module.exports = async ({ req, res, log, error }) => {
       body = {};
     }
 
-    const { prompt, model = "gemini-3-pro-preview" } = body;
+    const { prompt, model = "gemini-2.5-pro" } = body;
 
     if (!prompt) {
       error("Missing prompt parameter");
