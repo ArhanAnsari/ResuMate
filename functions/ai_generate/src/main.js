@@ -1,29 +1,46 @@
+const fetch = require("node-fetch");
+
 module.exports = async ({ req, res, log, error }) => {
-  // 1. Check API key
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    error("Configuration Error: GEMINI_API_KEY is missing.");
-    return res.json({ error: "Server configuration error" }, 500);
-  }
-
-  // 2. Parse request body safely
-  let body = {};
   try {
-    body = req.bodyJson || JSON.parse(req.body || "{}");
-  } catch (e) {
-    body = {};
-  }
+    log("Function started.");
 
-  const { prompt, model = "gemini-3-pro-preview" } = body;
+    // 1. Check API key
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      error("Configuration Error: GEMINI_API_KEY is missing.");
+      return res.json({ error: "Server configuration error" }, 500);
+    }
 
-  if (!prompt) {
-    return res.json({ error: "Missing prompt parameter" }, 400);
-  }
+    // 2. Parse request body
+    let body = {};
+    if (req.bodyJson) {
+      body = req.bodyJson;
+    } else {
+      try {
+        body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      } catch (e) {
+        error("JSON Parse Error: " + e.message);
+        return res.json({ error: "Invalid JSON body" }, 400);
+      }
+    }
 
-  // 3. Gemini API URL
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    // Safety check if body is still not an object
+    if (!body || typeof body !== "object") {
+      body = {};
+    }
 
-  try {
+    const { prompt, model = "gemini-3-pro-preview" } = body;
+
+    if (!prompt) {
+      error("Missing prompt parameter");
+      return res.json({ error: "Missing prompt parameter" }, 400);
+    }
+
+    log(`Generating content with model: ${model}`);
+
+    // 3. Gemini API URL
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -31,33 +48,36 @@ module.exports = async ({ req, res, log, error }) => {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048
-        }
-      })
+          maxOutputTokens: 2048,
+        },
+      }),
     });
 
     if (!response.ok) {
-      const errData = await response.text();
-      error(`Gemini API Error: ${errData}`);
+      const errText = await response.text();
+      error(`Gemini API Error [${response.status}]: ${errText}`);
       return res.json(
-        { error: "Failed to fetch from AI provider" },
-        response.status
+        { error: "Failed to fetch from AI provider", details: errText },
+        response.status,
       );
     }
 
     const data = await response.json();
-    const generatedText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!generatedText) {
-      return res.json({ error: "No content generated" }, 500);
+      error("Gemini response missing text: " + JSON.stringify(data));
+      return res.json({ error: "No content generated from provider" }, 500);
     }
 
-    // 4. Success response
+    log("Generation successful.");
     return res.json({ text: generatedText });
-
   } catch (err) {
-    error(err.toString());
-    return res.json({ error: "Internal Server Error" }, 500);
+    error("Unhandled Exception: " + err.toString());
+    if (err.stack) error(err.stack);
+    return res.json(
+      { error: "Internal Server Error", message: err.message },
+      500,
+    );
   }
 };

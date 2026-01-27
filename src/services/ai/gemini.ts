@@ -85,6 +85,7 @@ export const AIService = {
     );
 
     if (execution.status === "failed") {
+      console.log("Function execution failed:", execution);
       throw new Error(execution.responseBody || "Function execution failed");
     }
 

@@ -5,5 +5,8 @@
   "main": "src/main.js",
   "engines": {
     "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0"
   }
 }
