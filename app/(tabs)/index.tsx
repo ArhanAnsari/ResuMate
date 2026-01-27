@@ -1,17 +1,18 @@
-import { useAuthStore } from "@/store/authStore";
 import { EducationSection } from "@/src/features/resume/components/EducationSection";
 import { PersonalInfoForm } from "@/src/features/resume/components/PersonalInfoForm";
+import { SkillsSection } from "@/src/features/resume/components/SkillsSection";
+import { useAuthStore } from "@/store/authStore";
 import { useResumeStore } from "@/store/resumeStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React, { useEffect, useMemo } from "react";
 import {
-  ActivityIndicator,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -89,6 +90,7 @@ export default function BuilderScreen() {
         {/* Sections */}
         <PersonalInfoForm />
         <EducationSection />
+        <SkillsSection />
 
         {/* Placeholder for future sections */}
         <View className="bg-card p-6 rounded-2xl border border-dashed border-border items-center justify-center py-10">
@@ -96,7 +98,7 @@ export default function BuilderScreen() {
             More sections coming soon
           </Text>
           <Text className="text-xs text-muted-foreground/60 text-center">
-            (Experience, Skills, Projects)
+            (Experience, Projects)
           </Text>
         </View>
       </ScrollView>

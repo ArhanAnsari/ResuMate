@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Linking,
   ScrollView,
   Switch,
   Text,
@@ -21,6 +22,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
+  const handlePortfolioPress = () => {
+      Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
+    };
   const { user, logout } = useAuthStore();
   const { profile, fetchProfile } = useProfileStore();
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
@@ -197,6 +201,21 @@ export default function Settings() {
             variant="outline"
             className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900"
           />
+        </View>
+        <View className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 items-center">
+          <Text className="text-slate-400 text-xs mb-1">
+            © {new Date().getFullYear()} ResuMate. All rights reserved.
+          </Text>
+        <View className="flex-row items-center">
+            <Text className="text-slate-500 text-xs">
+              Developed with love by{" "}
+            </Text>
+            <TouchableOpacity onPress={handlePortfolioPress}>
+              <Text className="text-blue-600 font-bold text-xs underline">
+                Arhan Ansari
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

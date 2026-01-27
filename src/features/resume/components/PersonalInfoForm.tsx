@@ -1,10 +1,10 @@
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
-import { COLORS, SPACING } from "@/src/core/theme";
 import { AIAssistantModal } from "@/src/features/ai/components/AIAssistantModal";
 import { useResumeStore } from "@/store/resumeStore";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export const PersonalInfoForm: React.FC = () => {
   const activeResumeId = useResumeStore((state) => state.activeResumeId);
@@ -12,59 +12,76 @@ export const PersonalInfoForm: React.FC = () => {
     activeResumeId ? state.resumes[activeResumeId]?.profile : null,
   );
   const updateProfile = useResumeStore((state) => state.updateProfile);
+  const { colorScheme } = useColorScheme();
+  const primaryColor = "#2563EB";
 
   const [aiModalVisible, setAiModalVisible] = useState(false);
 
   if (!profile) return null;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
+    <View className="bg-card p-4 rounded-2xl border border-border">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-bold text-foreground">
+          Personal Information
+        </Text>
         <TouchableOpacity
-          style={styles.aiButton}
+          className="flex-row items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full active:bg-primary/20"
           onPress={() => setAiModalVisible(true)}
         >
-          <MaterialIcons name="auto-awesome" size={16} color={COLORS.primary} />
-          <Text style={styles.aiButtonText}>AI Assist</Text>
+          <MaterialIcons name="auto-awesome" size={16} color={primaryColor} />
+          <Text className="text-primary font-medium text-xs">AI Assist</Text>
         </TouchableOpacity>
       </View>
 
-      <PremiumInput
-        label="Full Name"
-        value={profile.fullName}
-        onChangeText={(text) => updateProfile({ fullName: text })}
-        placeholder="e.g. John Doe"
-      />
+      <View className="gap-4">
+        <PremiumInput
+          label="Full Name"
+          value={profile.fullName}
+          onChangeText={(text) => updateProfile({ fullName: text })}
+          placeholder="e.g. John Doe"
+        />
 
-      <PremiumInput
-        label="Email"
-        value={profile.email}
-        onChangeText={(text) => updateProfile({ email: text })}
-        placeholder="e.g. john@example.com"
-        keyboardType="email-address"
-      />
+        <PremiumInput
+          label="Email"
+          value={profile.email}
+          onChangeText={(text) => updateProfile({ email: text })}
+          placeholder="e.g. john@example.com"
+          keyboardType="email-address"
+        />
 
-      <PremiumInput
-        label="Phone"
-        value={profile.phone}
-        onChangeText={(text) => updateProfile({ phone: text })}
-        placeholder="e.g. +1 234 567 890"
-        keyboardType="phone-pad"
-      />
+        <PremiumInput
+          label="Phone"
+          value={profile.phone}
+          onChangeText={(text) => updateProfile({ phone: text })}
+          placeholder="e.g. +1 234 567 890"
+          keyboardType="phone-pad"
+        />
 
-      <PremiumInput
-        label="Location"
-        value={profile.location}
-        onChangeText={(text) => updateProfile({ location: text })}
-        placeholder="e.g. New York, NY"
-      />
+        <PremiumInput
+          label="Location"
+          value={profile.location}
+          onChangeText={(text) => updateProfile({ location: text })}
+          placeholder="e.g. New York, NY"
+        />
+
+        <PremiumInput
+          label="Professional Summary"
+          value={profile.summary || ""}
+          onChangeText={(text) => updateProfile({ summary: text })}
+          placeholder="Brief overview of your career and goals..."
+          multiline
+          numberOfLines={4}
+        />
+      </View>
 
       <AIAssistantModal
         visible={aiModalVisible}
         onClose={() => setAiModalVisible(false)}
         onApply={(content) => {
-          console.log("AI Content Applied:", content);
+          // Logic: Update the profile summary with the AI generated text
+          console.log("AI Generated Summary:", content);
+          updateProfile({ summary: content });
         }}
         promptType="summary"
         initialPrompt="Write a professional summary for my resume..."
@@ -72,40 +89,3 @@ export const PersonalInfoForm: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.md,
-    borderRadius: 16, // LAYOUT.borderRadius.lg
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-  },
-  aiButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  aiButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.primary,
-  },
-});

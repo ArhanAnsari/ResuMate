@@ -5,41 +5,55 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#2563EB', // Blue 600
-        primaryDark: '#1E40AF',
-        secondary: '#64748B', // Slate 500
-        background: '#F8FAFC', // Slate 50
-        surface: '#FFFFFF',
-        text: '#0F172A', // Slate 900
-        textSecondary: '#475569', // Slate 600
-        textTertiary: '#94A3B8', // Slate 400
-        border: '#E2E8F0', // Slate 200
-        error: '#EF4444',
-        success: '#22C55E',
-        warning: '#F59E0B',
+        primary: "#2563EB", // Blue 600
+        primaryDark: "#1E40AF",
+        secondary: "#64748B", // Slate 500
+        background: "#F8FAFC", // Slate 50
+        foreground: "#0F172A", // Slate 900
+        surface: "#FFFFFF",
+        text: "#0F172A", // Slate 900
+        textSecondary: "#475569", // Slate 600
+        textTertiary: "#94A3B8", // Slate 400
+        border: "#E2E8F0", // Slate 200
+        error: "#EF4444",
+        success: "#22C55E",
+        warning: "#F59E0B",
+
+        // Semantic Colors (shadcn-like)
+        card: "#FFFFFF",
+        "card-foreground": "#0F172A",
+        popover: "#FFFFFF",
+        "popover-foreground": "#0F172A",
+        muted: "#F1F5F9", // Slate 100
+        "muted-foreground": "#64748B", // Slate 500
+        accent: "#F1F5F9", // Slate 100
+        "accent-foreground": "#0F172A",
+        destructive: "#EF4444",
+        "destructive-foreground": "#FFFFFF",
+        input: "#E2E8F0",
+        ring: "#2563EB",
       },
       spacing: {
-        xs: '4px',
-        sm: '8px',
-        md: '16px',
-        lg: '24px',
-        xl: '32px',
-        xxl: '48px',
+        xs: "4px",
+        sm: "8px",
+        md: "16px",
+        lg: "24px",
+        xl: "32px",
+        xxl: "48px",
       },
       borderRadius: {
-        sm: '6px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
+        sm: "6px",
+        md: "8px",
+        lg: "12px",
+        xl: "16px",
       },
       fontFamily: {
-        regular: ['System'],
-        medium: ['System'],
-        semibold: ['System'],
-        bold: ['System'],
-      }
+        regular: ["System"],
+        medium: ["System"],
+        semibold: ["System"],
+        bold: ["System"],
+      },
     },
   },
   plugins: [],
-}
-
+};

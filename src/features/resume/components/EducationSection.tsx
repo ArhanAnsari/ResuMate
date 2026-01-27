@@ -1,17 +1,21 @@
 import { EducationItem } from "@/interfaces/resume";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
 import { PremiumInput } from "@/shared/components/ui/PremiumInput";
-import { COLORS, LAYOUT, SPACING, TYPOGRAPHY } from "@/src/core/theme";
 import { useResumeStore } from "@/store/resumeStore";
-import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import DraggableFlatList, {
+    RenderItemParams,
+    ScaleDecorator,
+} from "react-native-draggable-flatlist";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const EMPTY_EDUCATION: EducationItem[] = [];
 
 export const EducationSection: React.FC = () => {
   const activeResumeId = useResumeStore((state) => state.activeResumeId);
 
-  // Use a stable selector or handle the fallback carefully to avoid infinite loops
   const educationList = useResumeStore((state) => {
     if (!activeResumeId || !state.resumes[activeResumeId])
       return EMPTY_EDUCATION;
@@ -21,8 +25,7 @@ export const EducationSection: React.FC = () => {
   const addEducation = useResumeStore((state) => state.addEducation);
   const updateEducation = useResumeStore((state) => state.updateEducation);
   const removeEducation = useResumeStore((state) => state.removeEducation);
-
-  const [isAdding, setIsAdding] = useState(false);
+  const reorderEducation = useResumeStore((state) => state.reorderEducation);
 
   const handleAddNew = () => {
     addEducation({
@@ -30,16 +33,36 @@ export const EducationSection: React.FC = () => {
       degree: "",
       startDate: "",
     });
-    // Find the newly added item logic could go here to auto-expand,
-    // but simplified, we assume the user scrolls to it or we render it in edit mode.
-    // For arrays, better UX is often a modal or an inline expanded card.
-    // Here we will simply render the list.
+  };
+
+  const renderItem = ({
+    item,
+    drag,
+    isActive,
+  }: RenderItemParams<EducationItem>) => {
+    return (
+      <ScaleDecorator>
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          activeOpacity={1}
+          style={{ opacity: isActive ? 0.9 : 1 }}
+        >
+          <EducationItemCard
+            item={item}
+            isActive={isActive}
+            onUpdate={(data) => updateEducation(item.id, data)}
+            onDelete={() => removeEducation(item.id)}
+          />
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Education</Text>
+    <View className="bg-card p-4 rounded-2xl border border-border">
+      <View className="flex-row justify-between items-center mb-4">
+        <Text className="text-lg font-bold text-foreground">Education</Text>
         <PremiumButton
           title="+ Add"
           size="sm"
@@ -48,38 +71,54 @@ export const EducationSection: React.FC = () => {
         />
       </View>
 
-      {educationList &&
-        educationList.map((item) => (
-          <EducationItemCard
-            key={item.id}
-            item={item}
-            onUpdate={(data) => updateEducation(item.id, data)}
-            onDelete={() => removeEducation(item.id)}
-          />
-        ))}
-
-      {educationList?.length === 0 && (
-        <Text style={styles.emptyText}>No education added yet.</Text>
-      )}
+      <View
+        style={{
+          height: Math.max(100, Math.min(educationList.length * 350, 600)),
+        }}
+      >
+        {educationList.length > 0 ? (
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <DraggableFlatList
+              data={educationList}
+              onDragEnd={({ data }) => reorderEducation(data)}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+            />
+          </GestureHandlerRootView>
+        ) : (
+          <Text className="text-muted-foreground italic text-center py-4">
+            No education added yet.
+          </Text>
+        )}
+      </View>
     </View>
   );
 };
 
 const EducationItemCard: React.FC<{
   item: EducationItem;
+  isActive: boolean;
   onUpdate: (data: Partial<EducationItem>) => void;
   onDelete: () => void;
-}> = ({ item, onUpdate, onDelete }) => {
-  // In a real app, this might be collapsible.
-  // We'll keep it expanded for "Form-first" requirements if list is short,
-  // or simple fields.
-
+}> = ({ item, isActive, onUpdate, onDelete }) => {
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>Education Entry</Text>
-        <TouchableOpacity onPress={onDelete}>
-          <Text style={styles.deleteText}>Remove</Text>
+    <View
+      className={`mb-4 p-4 rounded-xl border ${isActive ? "bg-primary/5 border-primary shadow-lg" : "bg-muted/30 border-border"}`}
+    >
+      <View className="flex-row justify-between items-center mb-2">
+        <View className="flex-row items-center gap-2">
+          <Ionicons name="menu" size={20} color="#94A3B8" />
+          <Text className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Entry
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={onDelete}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text className="text-destructive font-medium text-sm">Remove</Text>
         </TouchableOpacity>
       </View>
 
@@ -96,8 +135,8 @@ const EducationItemCard: React.FC<{
         placeholder="e.g. Bachelor of Science"
       />
 
-      <View style={styles.row}>
-        <View style={styles.halfInput}>
+      <View className="flex-row gap-4">
+        <View className="flex-1">
           <PremiumInput
             label="Start Date"
             value={item.startDate}
@@ -105,7 +144,7 @@ const EducationItemCard: React.FC<{
             placeholder="YYYY-MM"
           />
         </View>
-        <View style={styles.halfInput}>
+        <View className="flex-1">
           <PremiumInput
             label="End Date"
             value={item.endDate || ""}
@@ -117,61 +156,3 @@ const EducationItemCard: React.FC<{
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: SPACING.md,
-    backgroundColor: COLORS.surface,
-    borderRadius: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.semibold,
-    color: COLORS.text,
-  },
-  card: {
-    marginBottom: SPACING.md,
-    padding: SPACING.md,
-    backgroundColor: COLORS.background,
-    borderRadius: LAYOUT.borderRadius.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: SPACING.sm,
-  },
-  cardTitle: {
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: TYPOGRAPHY.weights.medium,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
-  },
-  deleteText: {
-    color: COLORS.error,
-    fontSize: TYPOGRAPHY.sizes.sm,
-    fontWeight: TYPOGRAPHY.weights.medium,
-  },
-  emptyText: {
-    color: COLORS.textTertiary,
-    fontStyle: "italic",
-    textAlign: "center",
-    padding: SPACING.md,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: SPACING.md,
-  },
-  halfInput: {
-    flex: 1,
-  },
-});

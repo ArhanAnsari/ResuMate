@@ -107,7 +107,7 @@ export default function ProfileScreen() {
               className="text-slate-900 dark:text-white"
             />
           </TouchableOpacity>
-          <Text className="text-lg font-bold text-slate-900 dark:text-white">
+          <Text className="text-lg font-bold text-slate-900 dark:text-blue-600">
             Edit Profile
           </Text>
           <TouchableOpacity onPress={handleSave} disabled={isLoading}>

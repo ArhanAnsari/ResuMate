@@ -1,10 +1,10 @@
 import {
-  EducationItem,
-  ExperienceItem,
-  ProjectItem,
-  ResumeData,
-  ResumeProfile,
-  SkillItem,
+    EducationItem,
+    ExperienceItem,
+    ProjectItem,
+    ResumeData,
+    ResumeProfile,
+    SkillItem,
 } from "@/interfaces/resume";
 import { ResumeService } from "@/services/resume.service";
 import { generateId } from "@/utils/id"; // I need to create this util
@@ -28,17 +28,21 @@ interface ResumeState {
   addEducation: (item: Omit<EducationItem, "id">) => void;
   updateEducation: (id: string, item: Partial<EducationItem>) => void;
   removeEducation: (id: string) => void;
+  reorderEducation: (items: EducationItem[]) => void;
 
   addExperience: (item: Omit<ExperienceItem, "id">) => void;
   updateExperience: (id: string, item: Partial<ExperienceItem>) => void;
   removeExperience: (id: string) => void;
+  reorderExperience: (items: ExperienceItem[]) => void;
 
   addProject: (item: Omit<ProjectItem, "id">) => void;
   updateProject: (id: string, item: Partial<ProjectItem>) => void;
   removeProject: (id: string) => void;
+  reorderProjects: (items: ProjectItem[]) => void;
 
   addSkill: (item: Omit<SkillItem, "id">) => void;
   removeSkill: (id: string) => void;
+  reorderSkills: (items: SkillItem[]) => void;
 }
 
 const DEFAULT_PROFILE: ResumeProfile = {
@@ -323,6 +327,66 @@ export const useResumeStore = create<ResumeState>()(
               skills: state.resumes[activeResumeId].skills.filter(
                 (item) => item.id !== itemId,
               ),
+              lastModified: Date.now(),
+            },
+          },
+        }));
+      },
+
+      reorderEducation: (items) => {
+        const { activeResumeId } = get();
+        if (!activeResumeId) return;
+        set((state) => ({
+          resumes: {
+            ...state.resumes,
+            [activeResumeId]: {
+              ...state.resumes[activeResumeId],
+              education: items,
+              lastModified: Date.now(),
+            },
+          },
+        }));
+      },
+
+      reorderExperience: (items) => {
+        const { activeResumeId } = get();
+        if (!activeResumeId) return;
+        set((state) => ({
+          resumes: {
+            ...state.resumes,
+            [activeResumeId]: {
+              ...state.resumes[activeResumeId],
+              experience: items,
+              lastModified: Date.now(),
+            },
+          },
+        }));
+      },
+
+      reorderProjects: (items) => {
+        const { activeResumeId } = get();
+        if (!activeResumeId) return;
+        set((state) => ({
+          resumes: {
+            ...state.resumes,
+            [activeResumeId]: {
+              ...state.resumes[activeResumeId],
+              projects: items,
+              lastModified: Date.now(),
+            },
+          },
+        }));
+      },
+
+      reorderSkills: (items) => {
+        const { activeResumeId } = get();
+        if (!activeResumeId) return;
+        set((state) => ({
+          resumes: {
+            ...state.resumes,
+            [activeResumeId]: {
+              ...state.resumes[activeResumeId],
+              skills: items,
               lastModified: Date.now(),
             },
           },

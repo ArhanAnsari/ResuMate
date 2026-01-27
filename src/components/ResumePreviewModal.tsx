@@ -1,8 +1,14 @@
-import { Button } from "@/src/components/ui/Button";
-import { Colors } from "@/src/core/theme/tokens";
 import { ResumeData } from "@/interfaces/resume";
+import { Button } from "@/src/components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
-import { Modal, ScrollView, Text, View } from "react-native";
+import {
+  Linking,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface PreviewModalProps {
@@ -11,34 +17,108 @@ interface PreviewModalProps {
   data: ResumeData;
 }
 
-export const ResumePreviewModal = ({ visible, onClose, data }: PreviewModalProps) => {
+const getSkillIcon = (
+  skillName: string,
+): keyof typeof Ionicons.glyphMap | null => {
+  if (!skillName) return null;
+  const normalized = skillName.toLowerCase();
+  const map: Record<string, keyof typeof Ionicons.glyphMap> = {
+    react: "logo-react",
+    "react native": "logo-react",
+    javascript: "logo-javascript",
+    typescript: "logo-nodejs", // closely related
+    "node.js": "logo-nodejs",
+    nodejs: "logo-nodejs",
+    python: "logo-python",
+    html: "logo-html5",
+    css: "logo-css3",
+    github: "logo-github",
+    git: "git-branch",
+    docker: "logo-docker",
+    angular: "logo-angular",
+    vue: "logo-vue",
+    apple: "logo-apple",
+    android: "logo-android",
+    windows: "logo-windows",
+    linux: "logo-tux",
+    sass: "logo-sass",
+    figma: "color-palette",
+    firebase: "flame",
+    design: "brush",
+  };
+
+  if (map[normalized]) return map[normalized];
+
+  // Fuzzy matching for partials
+  if (normalized.includes("react")) return "logo-react";
+  if (normalized.includes("script")) return "code-slash";
+  if (normalized.includes("css")) return "logo-css3";
+  if (normalized.includes("db") || normalized.includes("sql")) return "server";
+  if (normalized.includes("cloud") || normalized.includes("aws"))
+    return "cloud";
+
+  return null;
+};
+
+export const ResumePreviewModal = ({
+  visible,
+  onClose,
+  data,
+}: PreviewModalProps) => {
+  const handlePortfolioPress = () => {
+    Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
+  };
+
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
       <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-        <View className="flex-row justify-between items-center px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <Text className="text-lg font-bold dark:text-white">Resume Preview</Text>
+        <View className="flex-row justify-between items-center px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <Text className="text-lg font-bold dark:text-white">
+            Resume Preview
+          </Text>
           <Button title="Close" variant="ghost" onPress={onClose} size="sm" />
         </View>
 
-        <ScrollView className="flex-1 p-6" contentContainerStyle={{ paddingBottom: 50 }}>
+        <ScrollView
+          className="flex-1 p-6"
+          contentContainerStyle={{ paddingBottom: 50 }}
+        >
           {/* Header */}
           <View className="items-center mb-8 border-b-2 border-slate-200 pb-6">
-            <Text className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+            <Text className="text-3xl font-bold text-slate-900 dark:text-white mb-2 text-center">
               {data.profile?.fullName || "Your Name"}
             </Text>
-            <Text className="text-slate-600 dark:text-slate-400">
-              {data.profile?.email} • {data.profile?.location}
-            </Text>
+            <View className="flex-row gap-2 flex-wrap justify-center">
+              <Text className="text-slate-600 dark:text-slate-400">
+                {data.profile?.email}
+              </Text>
+              {data.profile?.location && (
+                <Text className="text-slate-600 dark:text-slate-400">
+                  • {data.profile?.location}
+                </Text>
+              )}
+              {data.profile?.phone && (
+                <Text className="text-slate-600 dark:text-slate-400">
+                  • {data.profile?.phone}
+                </Text>
+              )}
+            </View>
           </View>
 
           {/* Summary */}
           {data.summary ? (
             <View className="mb-6">
-              <Text className="text-sm font-bold text-blue-600 uppercase mb-2">
+              <Text className="text-sm font-bold text-blue-600 uppercase mb-2 tracking-wider">
                 Summary
               </Text>
-              <Text className="text-slate-700 dark:text-slate-300 leading-6">
-                {data.summary}
+              <Text className="text-slate-700 dark:text-slate-300 leading-6 text-base">
+                {typeof data.summary === "string"
+                  ? data.summary
+                  : "Summary available"}
               </Text>
             </View>
           ) : null}
@@ -46,17 +126,17 @@ export const ResumePreviewModal = ({ visible, onClose, data }: PreviewModalProps
           {/* Education */}
           {(data.education || []).length > 0 && (
             <View className="mb-6">
-              <Text className="text-sm font-bold text-blue-600 uppercase mb-2">
+              <Text className="text-sm font-bold text-blue-600 uppercase mb-3 tracking-wider">
                 Education
               </Text>
               {data.education.map((edu, index) => (
-                <View key={index} className="mb-3">
-                  <View className="flex-row justify-between">
-                    <Text className="font-bold text-slate-800 dark:text-slate-200">
-                        {edu.institution}
+                <View key={index} className="mb-4 ml-1">
+                  <View className="flex-row justify-between items-baseline mb-1">
+                    <Text className="font-bold text-slate-800 dark:text-slate-200 text-base flex-1">
+                      {edu.institution}
                     </Text>
-                    <Text className="text-slate-500 text-sm">
-                        {edu.startDate} - {edu.endDate}
+                    <Text className="text-slate-500 text-sm ml-2">
+                      {edu.startDate} - {edu.endDate || "Present"}
                     </Text>
                   </View>
                   <Text className="text-slate-600 dark:text-slate-400 italic">
@@ -66,24 +146,24 @@ export const ResumePreviewModal = ({ visible, onClose, data }: PreviewModalProps
               ))}
             </View>
           )}
-          
+
           {/* Experience */}
           {(data.experience || []).length > 0 && (
             <View className="mb-6">
-              <Text className="text-sm font-bold text-blue-600 uppercase mb-2">
+              <Text className="text-sm font-bold text-blue-600 uppercase mb-3 tracking-wider">
                 Experience
               </Text>
               {data.experience.map((exp, index) => (
-               <View key={index} className="mb-4">
-                  <View className="flex-row justify-between">
-                    <Text className="font-bold text-slate-800 dark:text-slate-200">
-                        {exp.position}
+                <View key={index} className="mb-5 ml-1">
+                  <View className="flex-row justify-between items-baseline mb-1">
+                    <Text className="font-bold text-slate-800 dark:text-slate-200 text-lg flex-1">
+                      {exp.position}
                     </Text>
-                    <Text className="text-slate-500 text-sm">
-                        {exp.startDate} - {exp.endDate}
+                    <Text className="text-slate-500 text-sm ml-2">
+                      {exp.startDate} - {exp.endDate || "Present"}
                     </Text>
                   </View>
-                  <Text className="text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                  <Text className="text-slate-700 dark:text-slate-300 font-semibold mb-2 text-base">
                     {exp.company}
                   </Text>
                   <Text className="text-slate-600 dark:text-slate-400 leading-5">
@@ -94,24 +174,69 @@ export const ResumePreviewModal = ({ visible, onClose, data }: PreviewModalProps
             </View>
           )}
 
+          {/* Projects */}
+          {(data.projects || []).length > 0 && (
+            <View className="mb-6">
+              <Text className="text-sm font-bold text-blue-600 uppercase mb-3 tracking-wider">
+                Projects
+              </Text>
+              {data.projects.map((proj, index) => (
+                <View key={index} className="mb-4 ml-1">
+                  <View className="flex-row justify-between items-baseline mb-1">
+                    <Text className="font-bold text-slate-800 dark:text-slate-200 text-base flex-1">
+                      {proj.name}
+                    </Text>
+                  </View>
+                  <Text className="text-slate-600 dark:text-slate-400 leading-5">
+                    {proj.description}
+                  </Text>
+                  {proj.technologies && proj.technologies.length > 0 && (
+                    <Text className="text-slate-500 text-xs mt-1">
+                      Tech: {proj.technologies.join(", ")}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
           {/* Skills */}
           {(data.skills || []).length > 0 && (
-            <View className="mb-6">
-              <Text className="text-sm font-bold text-blue-600 uppercase mb-2">
+            <View className="mb-8">
+              <Text className="text-sm font-bold text-blue-600 uppercase mb-3 tracking-wider">
                 Skills
               </Text>
               <View className="flex-row flex-wrap gap-2">
-                {data.skills.map((skill, index) => (
-                  <View key={index} className="bg-slate-200 dark:bg-slate-800 px-3 py-1 rounded-full">
-                    <Text className="text-slate-700 dark:text-slate-300 text-sm">
-                        {skill.name}
-                    </Text>
-                  </View>
-                ))}
+                {data.skills.map((skill: any, index) => {
+                  const skillName =
+                    typeof skill === "string" ? skill : skill.name;
+                  if (!skillName) return null;
+
+                  const iconName = getSkillIcon(skillName);
+                  return (
+                    <View
+                      key={index}
+                      className="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg flex-row items-center gap-2 border border-slate-200 dark:border-slate-700"
+                    >
+                      {iconName && (
+                        <Ionicons name={iconName} size={16} color="#2563EB" />
+                      )}
+                      <Text className="text-slate-700 dark:text-slate-300 text-sm font-medium">
+                        {skillName}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
             </View>
           )}
 
+          {/* Footer */}
+          <View className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 items-center gap-2">
+            <Text className="text-slate-400 text-xs mb-1">
+              Generated by ResuMate App
+            </Text>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </Modal>

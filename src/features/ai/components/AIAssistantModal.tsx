@@ -1,9 +1,16 @@
 import { AIService } from "@/services/ai.service";
 import { PremiumButton } from "@/shared/components/ui/PremiumButton";
-import { COLORS, SPACING } from "@/src/core/theme";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
-import { Alert, Modal, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface AIAssistantProps {
   visible: boolean;
@@ -25,6 +32,9 @@ export const AIAssistantModal: React.FC<AIAssistantProps> = ({
   const [prompt, setPrompt] = useState(initialPrompt || "");
   const [generatedContent, setGeneratedContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const { colorScheme } = useColorScheme();
+  const iconColor = colorScheme === "dark" ? "#E2E8F0" : "#475569";
+  const primaryColor = "#2563EB";
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -52,70 +62,110 @@ export const AIAssistantModal: React.FC<AIAssistantProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <View style={styles.headerTitleContainer}>
-              <MaterialIcons
-                name="auto-awesome"
-                size={24}
-                color={COLORS.primary}
-              />
-              <Text style={styles.headerTitle}>AI Assistant</Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/50 justify-end">
+        <View className="bg-card w-full h-[90%] rounded-t-3xl shadow-2xl overflow-hidden border-t border-white/20">
+          {/* Header */}
+          <View className="flex-row justify-between items-center p-5 border-b border-border bg-card">
+            <View className="flex-row items-center gap-3">
+              <View className="bg-primary/10 p-2 rounded-xl">
+                <MaterialIcons
+                  name="auto-awesome"
+                  size={24}
+                  color={primaryColor}
+                />
+              </View>
+              <View>
+                <Text className="text-xl font-bold text-foreground">
+                  AI Assistant
+                </Text>
+                <Text className="text-xs text-muted-foreground">
+                  Powered by Gemini 2.5
+                </Text>
+              </View>
             </View>
-            <MaterialIcons
-              name="close"
-              size={24}
-              color={COLORS.textSecondary}
+            <TouchableOpacity
               onPress={onClose}
-            />
+              className="p-2 rounded-full active:bg-muted"
+            >
+              <MaterialIcons name="close" size={24} color={iconColor} />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.content}>
-            <Text style={styles.label}>What should I write about?</Text>
-            <TextInput
-              style={styles.input}
-              value={prompt}
-              onChangeText={setPrompt}
-              placeholder="E.g., Write a professional summary for a Senior React Developer..."
-              multiline
-              numberOfLines={3}
-              placeholderTextColor={COLORS.textTertiary}
-            />
-
-            <View style={styles.generateRow}>
-              <PremiumButton
-                title="Generate"
-                onPress={handleGenerate}
-                isLoading={loading}
-                size="sm"
-                variant="primary"
+          {/* Content */}
+          <View className="flex-1 p-5 gap-6 bg-background">
+            <View className="gap-2">
+              <Text className="text-sm font-semibold text-foreground ml-1">
+                What do you want to write?
+              </Text>
+              <TextInput
+                className="bg-card border border-input rounded-xl p-4 text-foreground min-h-[100px] text-base leading-6"
+                value={prompt}
+                onChangeText={setPrompt}
+                placeholder="E.g., Write a professional summary highlighting my experience in React Native and Node.js..."
+                multiline
+                numberOfLines={3}
+                placeholderTextColor="#94A3B8"
+                textAlignVertical="top"
               />
+              <View className="flex-row justify-end mt-2">
+                <PremiumButton
+                  title={loading ? "Generating..." : "Generate Draft"}
+                  onPress={handleGenerate}
+                  isLoading={loading}
+                  size="sm"
+                  variant="primary"
+                />
+              </View>
             </View>
 
             {generatedContent ? (
-              <View style={styles.resultContainer}>
-                <Text style={styles.resultLabel}>Generated Draft:</Text>
+              <View className="flex-1 gap-2">
+                <View className="flex-row justify-between items-center mt-2">
+                  <Text className="text-sm font-semibold text-foreground ml-1">
+                    Preview:
+                  </Text>
+                  <TouchableOpacity onPress={() => setGeneratedContent("")}>
+                    <Text className="text-xs text-primary font-medium mr-1">
+                      Clear
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 <TextInput
-                  style={styles.resultInput}
+                  className="flex-1 bg-primary/5 border border-primary/20 rounded-xl p-4 text-foreground text-base leading-6 text-left"
                   value={generatedContent}
                   onChangeText={setGeneratedContent}
                   multiline
+                  textAlignVertical="top"
                 />
-                <View style={styles.footer}>
+
+                <View className="flex-row gap-3 pt-2 pb-6">
                   <PremiumButton
-                    title="Use This"
+                    title="Discard"
+                    onPress={() => setGeneratedContent("")}
+                    variant="secondary"
+                    style={{ flex: 1 }}
+                  />
+                  <PremiumButton
+                    title="Apply to Resume"
                     onPress={handleApply}
+                    variant="primary"
                     style={{ flex: 1 }}
                   />
                 </View>
               </View>
             ) : (
-              <View style={styles.placeholder}>
-                <Text style={styles.placeholderText}>
-                  Enter a prompt above and let AI help you write the perfect
-                  resume content.
+              <View className="flex-1 justify-center items-center opacity-40 gap-4 mb-10">
+                <MaterialIcons name="text-fields" size={64} color={iconColor} />
+                <Text className="text-muted-foreground text-center px-10 text-base">
+                  Enter a prompt above and tap Generate to create professional
+                  content for your resume.
                 </Text>
               </View>
             )}
@@ -125,96 +175,3 @@ export const AIAssistantModal: React.FC<AIAssistantProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  container: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: SPACING.xl,
-    height: "80%",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  headerTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.xs,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: COLORS.text,
-  },
-  content: {
-    padding: SPACING.lg,
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    padding: SPACING.md,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
-    textAlignVertical: "top",
-    height: 80,
-    marginBottom: SPACING.md,
-  },
-  generateRow: {
-    alignItems: "flex-end",
-    marginBottom: SPACING.md,
-  },
-  resultContainer: {
-    flex: 1,
-    gap: SPACING.sm,
-  },
-  resultLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
-  resultInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderRadius: 12,
-    padding: SPACING.md,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
-    textAlignVertical: "top",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  footer: {
-    marginTop: SPACING.md,
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    opacity: 0.5,
-  },
-  placeholderText: {
-    textAlign: "center",
-    color: COLORS.textSecondary,
-    width: "70%",
-  },
-});
