@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+const fetch = require("node-fetch");
 
-export default async ({ req, res, log, error }) => {
+module.exports = async ({ req, res, log, error }) => {
   try {
     log("Function started.");
 
@@ -29,7 +29,8 @@ export default async ({ req, res, log, error }) => {
       body = {};
     }
 
-    const { prompt, model = "gemini-2.5-pro" } = body;
+    // Default to the faster flash model to avoid 30s synchronous timeouts
+    const { prompt, model = "gemini-1.5-flash" } = body;
 
     if (!prompt) {
       error("Missing prompt parameter");
@@ -71,7 +72,7 @@ export default async ({ req, res, log, error }) => {
     }
 
     log("Generation successful.");
-    return res.json({ text: generatedText });
+    return res.json({ text: generatedText, model }); // Return used model for debugging
   } catch (err) {
     error("Unhandled Exception: " + err.toString());
     if (err.stack) error(err.stack);

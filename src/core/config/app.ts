@@ -16,7 +16,7 @@ export const APP_CONFIG = {
     },
   },
   GEMINI: {
-    MODEL_ID: "gemini-2.5-pro",
+    MODEL_ID: "gemini-1.5-flash",
     API_KEY_STORAGE_KEY: "gemini_api_key",
   },
   LINKS: {
