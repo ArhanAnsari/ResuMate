@@ -11,26 +11,27 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
-  Linking,
-  ScrollView,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Linking,
+    ScrollView,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Settings() {
   const handlePortfolioPress = () => {
-      Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
-    };
+    Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
+  };
   const { user, logout } = useAuthStore();
   const { profile, fetchProfile } = useProfileStore();
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
   const { showToast } = useToast();
   const router = useRouter();
   const [apiKey, setApiKey] = useState("");
+  const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -42,8 +43,8 @@ export default function Settings() {
 
   const loadKey = async () => {
     try {
-      const key = await AIService.getApiKey();
-      if (key) setApiKey(key);
+      const storedKey = await AIService.getStoredApiKey();
+      if (storedKey) setApiKey(storedKey);
     } catch (error) {
       console.warn("Failed to load API key:", error);
     }
@@ -158,15 +159,27 @@ export default function Settings() {
 
         <SectionHeader title="AI Configuration" />
         <View className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-          <Input
-            label="Gemini API Key (Optional)"
-            placeholder="Paste your API Key here"
-            value={apiKey}
-            onChangeText={setApiKey}
-            secureTextEntry
-            autoCapitalize="none"
-            containerClassName="mb-2"
-          />
+          <View className="relative">
+            <Input
+              label="Gemini API Key (Optional)"
+              placeholder="Paste your API Key here"
+              value={apiKey}
+              onChangeText={setApiKey}
+              secureTextEntry={!isKeyVisible}
+              autoCapitalize="none"
+              containerClassName="mb-2"
+            />
+            <TouchableOpacity
+              className="absolute right-4 top-10 z-10 p-2"
+              onPress={() => setIsKeyVisible(!isKeyVisible)}
+            >
+              <Ionicons
+                name={isKeyVisible ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#94A3B8"
+              />
+            </TouchableOpacity>
+          </View>
           <Text className="text-xs text-slate-400 mb-4 px-1">
             Leave empty to use the app's secure default key.
           </Text>
@@ -206,7 +219,7 @@ export default function Settings() {
           <Text className="text-slate-400 text-xs mb-1">
             © {new Date().getFullYear()} ResuMate. All rights reserved.
           </Text>
-        <View className="flex-row items-center">
+          <View className="flex-row items-center">
             <Text className="text-slate-500 text-xs">
               Developed with love by{" "}
             </Text>

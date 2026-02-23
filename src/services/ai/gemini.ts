@@ -15,7 +15,17 @@ export const AIService = {
    * 2. Appwrite Function (Server-side Key)
    */
   async getApiKey(): Promise<string | null> {
-    return AsyncStorage.getItem(APP_CONFIG.GEMINI.API_KEY_STORAGE_KEY); // Updated key reference
+    // Check if hardcoded key exists first (from user setup)
+    const HARDCODED_KEY = "AIzaSyACgge8P2bmNlg-7cQ2aJJAzy1MUMV8xU4";
+    // Or return from storage
+    const storedKey = await AsyncStorage.getItem(
+      APP_CONFIG.GEMINI.API_KEY_STORAGE_KEY,
+    );
+    return storedKey || HARDCODED_KEY;
+  },
+
+  async getStoredApiKey(): Promise<string | null> {
+    return AsyncStorage.getItem(APP_CONFIG.GEMINI.API_KEY_STORAGE_KEY);
   },
 
   async setApiKey(key: string): Promise<void> {

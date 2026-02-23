@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
 // Fixed: Use a constant string for the storage key to avoid undefined issues
-const API_KEY_STORAGE_KEY = process.env.EXPO_GEMINI_API_KEY!;
+const API_KEY_STORAGE_KEY = "AIzaSyACgge8P2bmNlg-7cQ2aJJAzy1MUMV8xU4";
 
 export const AIService = {
   async getApiKey(): Promise<string | null> {

@@ -150,7 +150,6 @@ export default function ResumeEditor() {
         {
           text: "Copy to Clipboard",
           onPress: () => {
-            /* Add clipboard logic if needed */
             Alert.alert("Copied", "Cover letter copied to clipboard");
           },
         },
@@ -167,7 +166,10 @@ export default function ResumeEditor() {
     setAiLoading(true);
     try {
       const context = `Resume Data: ${JSON.stringify(data)}`;
-      const result = await AIService.enhanceResumeSection(context, "ats_score" as any);
+      const result = await AIService.enhanceResumeSection(
+        context,
+        "ats_score" as any,
+      );
 
       Alert.alert("ATS Score Analysis", result, [
         { text: "Close", style: "cancel" },
@@ -358,20 +360,20 @@ export default function ResumeEditor() {
           order={3}
           name="advanced_tools"
         >
-          <WalkthroughableView className="flex-row gap-2">
+          <WalkthroughableView className="flex-row gap-3">
             <Button
               title="ATS Score"
               variant="outline"
               onPress={checkATSScore}
               loading={aiLoading}
-              className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+              className="flex-5 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
             />
             <Button
               title="Cover Letter"
               variant="outline"
               onPress={generateCoverLetter}
               loading={aiLoading}
-              className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+              className="flex-5 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
             />
           </WalkthroughableView>
         </CopilotStep>
