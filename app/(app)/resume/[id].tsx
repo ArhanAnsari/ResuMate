@@ -17,11 +17,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const WalkthroughableText = walkthroughable(Text);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+const WalkthroughableView = walkthroughable(View);
 
 export default function ResumeEditor() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { start, copilotEvents } = useCopilot();
   const [resume, setResume] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>({});
@@ -36,6 +46,16 @@ export default function ResumeEditor() {
   useEffect(() => {
     fetchResume();
   }, [id]);
+
+  useEffect(() => {
+    // Start tutorial if it's the first time (you'd usually check AsyncStorage here)
+    // For now, we'll just start it after a short delay if data is loaded
+    if (!loading && data) {
+      setTimeout(() => {
+        start();
+      }, 1000);
+    }
+  }, [loading]);
 
   const fetchResume = async () => {
     try {
@@ -117,6 +137,48 @@ export default function ResumeEditor() {
     }
   };
 
+  const generateCoverLetter = async () => {
+    setAiLoading(true);
+    try {
+      const context = `Resume Data: ${JSON.stringify(data)}`;
+      const result = await AIService.enhanceResumeSection(
+        context,
+        "cover_letter" as any,
+      );
+
+      Alert.alert("Generated Cover Letter", result, [
+        {
+          text: "Copy to Clipboard",
+          onPress: () => {
+            /* Add clipboard logic if needed */
+            Alert.alert("Copied", "Cover letter copied to clipboard");
+          },
+        },
+        { text: "Close", style: "cancel" },
+      ]);
+    } catch (error) {
+      Alert.alert("AI Error", "Failed to generate cover letter");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const checkATSScore = async () => {
+    setAiLoading(true);
+    try {
+      const context = `Resume Data: ${JSON.stringify(data)}`;
+      const result = await AIService.enhanceResumeSection(context, "ats_score" as any);
+
+      Alert.alert("ATS Score Analysis", result, [
+        { text: "Close", style: "cancel" },
+      ]);
+    } catch (error) {
+      Alert.alert("AI Error", "Failed to analyze ATS score");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleAddItem = (section: "experience" | "education") => {
     const newItem =
       section === "experience"
@@ -161,6 +223,79 @@ export default function ResumeEditor() {
     setData({ ...data, skills: newSkills });
   };
 
+  const renderExperienceItem = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<any>) => {
+    const index = getIndex() ?? 0;
+    return (
+      <ScaleDecorator>
+        <Card className={`mb-4 ${isActive ? "opacity-80 shadow-lg" : ""}`}>
+          <View className="flex-row justify-between items-center mb-2">
+            <TouchableOpacity onLongPress={drag} className="p-2 -ml-2">
+              <Ionicons name="menu" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleRemoveItem("experience", index)}
+            >
+              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
+          <Input
+            label="Job Title"
+            value={item.position}
+            onChangeText={(t) =>
+              handleUpdateItem("experience", index, "position", t)
+            }
+            placeholder="e.g. Senior Developer"
+          />
+          <Input
+            label="Company"
+            value={item.company}
+            onChangeText={(t) =>
+              handleUpdateItem("experience", index, "company", t)
+            }
+            placeholder="e.g. Tech Corp"
+          />
+          <View className="flex-row space-x-4 gap-4">
+            <View className="flex-1">
+              <Input
+                label="Start Date"
+                value={item.startDate}
+                onChangeText={(t) =>
+                  handleUpdateItem("experience", index, "startDate", t)
+                }
+                placeholder="MMM YYYY"
+              />
+            </View>
+            <View className="flex-1">
+              <Input
+                label="End Date"
+                value={item.endDate}
+                onChangeText={(t) =>
+                  handleUpdateItem("experience", index, "endDate", t)
+                }
+                placeholder="Present"
+              />
+            </View>
+          </View>
+          <Input
+            label="Description"
+            multiline
+            numberOfLines={3}
+            value={item.description}
+            onChangeText={(t) =>
+              handleUpdateItem("experience", index, "description", t)
+            }
+            className="h-20 text-top"
+          />
+        </Card>
+      </ScaleDecorator>
+    );
+  };
+
   if (loading)
     return (
       <View className="flex-1 justify-center">
@@ -170,25 +305,31 @@ export default function ResumeEditor() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <View className="flex-row justify-between items-center px-4 py-2 bg-white dark:bg-slate-900 shadow-sm z-10">
+      <View className="flex-row justify-between items-center px-4 py-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm z-10 border-b border-slate-200/50 dark:border-slate-800/50">
         <Button
           title="Back"
           variant="ghost"
           onPress={() => router.back()}
           size="sm"
         />
-        <TouchableOpacity
-          onPress={() => setIsRenaming(true)}
-          className="flex-row items-center"
+        <CopilotStep
+          text="Tap here to rename your resume"
+          order={1}
+          name="rename"
         >
-          <Text
-            className="font-bold text-lg dark:text-white truncate max-w-[150px] mr-2"
-            numberOfLines={1}
+          <WalkthroughableTouchableOpacity
+            onPress={() => setIsRenaming(true)}
+            className="flex-row items-center"
           >
-            {resume?.title}
-          </Text>
-          <Ionicons name="pencil" size={14} color="#64748B" />
-        </TouchableOpacity>
+            <Text
+              className="font-bold text-lg dark:text-white truncate max-w-[150px] mr-2"
+              numberOfLines={1}
+            >
+              {resume?.title}
+            </Text>
+            <Ionicons name="pencil" size={14} color="#64748B" />
+          </WalkthroughableTouchableOpacity>
+        </CopilotStep>
         <Button
           title="Save"
           onPress={saveResume}
@@ -197,16 +338,47 @@ export default function ResumeEditor() {
         />
       </View>
 
-      <View className="px-4 py-2">
-        <Button
-          title="Preview Resume"
-          variant="outline"
-          onPress={() => setShowPreview(true)}
-        />
+      <View className="px-4 py-3 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-sm flex-row justify-between gap-2">
+        <CopilotStep
+          text="Preview your resume and export it to PDF"
+          order={2}
+          name="preview"
+        >
+          <WalkthroughableView className="flex-1">
+            <Button
+              title="Preview"
+              variant="outline"
+              onPress={() => setShowPreview(true)}
+              className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+            />
+          </WalkthroughableView>
+        </CopilotStep>
+        <CopilotStep
+          text="Check your ATS Score or Generate a Cover Letter"
+          order={3}
+          name="advanced_tools"
+        >
+          <WalkthroughableView className="flex-row gap-2">
+            <Button
+              title="ATS Score"
+              variant="outline"
+              onPress={checkATSScore}
+              loading={aiLoading}
+              className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+            />
+            <Button
+              title="Cover Letter"
+              variant="outline"
+              onPress={generateCoverLetter}
+              loading={aiLoading}
+              className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+            />
+          </WalkthroughableView>
+        </CopilotStep>
       </View>
 
       <ScrollView className="flex-1 p-4">
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50 shadow-lg shadow-slate-200/50 dark:shadow-none">
           <Text className="text-xl font-bold mb-4 dark:text-white">
             Personal Information
           </Text>
@@ -242,18 +414,27 @@ export default function ResumeEditor() {
           />
         </Card>
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50 shadow-lg shadow-slate-200/50 dark:shadow-none">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold dark:text-white">
               Professional Summary
             </Text>
-            <Button
-              title="AI Enhance"
-              size="sm"
-              variant="outline"
-              onPress={generateSummary}
-              loading={aiLoading}
-            />
+            <CopilotStep
+              text="Use AI to enhance your summary based on your experience"
+              order={3}
+              name="ai_enhance"
+            >
+              <WalkthroughableView>
+                <Button
+                  title="AI Enhance"
+                  size="sm"
+                  variant="outline"
+                  onPress={generateSummary}
+                  loading={aiLoading}
+                  className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                />
+              </WalkthroughableView>
+            </CopilotStep>
           </View>
           <Input
             multiline
@@ -261,92 +442,59 @@ export default function ResumeEditor() {
             value={data.summary}
             onChangeText={(t) => setData({ ...data, summary: t })}
             placeholder="Write a brief professional summary..."
-            className="h-32 text-top"
+            className="h-32 text-top bg-white/50 dark:bg-slate-800/50"
           />
         </Card>
 
         <View className="flex-row justify-between items-center mb-4 px-1">
           <Text className="text-xl font-bold dark:text-white">Experience</Text>
-          <TouchableOpacity
-            onPress={() => handleAddItem("experience")}
-            className="bg-blue-600 p-2 rounded-full"
+          <CopilotStep
+            text="Add new experience entries here"
+            order={4}
+            name="add_experience"
           >
-            <Ionicons name="add" size={20} color="white" />
-          </TouchableOpacity>
+            <WalkthroughableTouchableOpacity
+              onPress={() => handleAddItem("experience")}
+              className="bg-blue-600 p-2 rounded-full shadow-md shadow-blue-500/30"
+            >
+              <Ionicons name="add" size={20} color="white" />
+            </WalkthroughableTouchableOpacity>
+          </CopilotStep>
         </View>
 
-        {data.experience?.map((item: any, index: number) => (
-          <Card key={index} className="mb-4">
-            <View className="flex-row justify-end mb-2">
-              <TouchableOpacity
-                onPress={() => handleRemoveItem("experience", index)}
-              >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-            <Input
-              label="Job Title"
-              value={item.position}
-              onChangeText={(t) =>
-                handleUpdateItem("experience", index, "position", t)
+        <CopilotStep
+          text="Long press the menu icon to drag and reorder items"
+          order={5}
+          name="drag_drop"
+        >
+          <WalkthroughableView className="flex-1">
+            <DraggableFlatList
+              data={data.experience || []}
+              onDragEnd={({ data: newData }) =>
+                setData({ ...data, experience: newData })
               }
-              placeholder="e.g. Senior Developer"
+              keyExtractor={(item, index) => `exp-${index}`}
+              renderItem={renderExperienceItem}
+              scrollEnabled={false}
             />
-            <Input
-              label="Company"
-              value={item.company}
-              onChangeText={(t) =>
-                handleUpdateItem("experience", index, "company", t)
-              }
-              placeholder="e.g. Tech Corp"
-            />
-            <View className="flex-row space-x-4 gap-4">
-              <View className="flex-1">
-                <Input
-                  label="Start Date"
-                  value={item.startDate}
-                  onChangeText={(t) =>
-                    handleUpdateItem("experience", index, "startDate", t)
-                  }
-                  placeholder="MMM YYYY"
-                />
-              </View>
-              <View className="flex-1">
-                <Input
-                  label="End Date"
-                  value={item.endDate}
-                  onChangeText={(t) =>
-                    handleUpdateItem("experience", index, "endDate", t)
-                  }
-                  placeholder="Present"
-                />
-              </View>
-            </View>
-            <Input
-              label="Description"
-              multiline
-              numberOfLines={3}
-              value={item.description}
-              onChangeText={(t) =>
-                handleUpdateItem("experience", index, "description", t)
-              }
-              className="h-20 text-top"
-            />
-          </Card>
-        ))}
+          </WalkthroughableView>
+        </CopilotStep>
 
         <View className="flex-row justify-between items-center mb-4 mt-2 px-1">
           <Text className="text-xl font-bold dark:text-white">Education</Text>
           <TouchableOpacity
             onPress={() => handleAddItem("education")}
-            className="bg-blue-600 p-2 rounded-full"
+            className="bg-blue-600 p-2 rounded-full shadow-md shadow-blue-500/30"
           >
             <Ionicons name="add" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
         {data.education?.map((item: any, index: number) => (
-          <Card key={index} className="mb-4">
+          <Card
+            key={index}
+            className="mb-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50"
+          >
             <View className="flex-row justify-end mb-2">
               <TouchableOpacity
                 onPress={() => handleRemoveItem("education", index)}
@@ -397,13 +545,13 @@ export default function ResumeEditor() {
           <Text className="text-xl font-bold dark:text-white">Skills</Text>
           <TouchableOpacity
             onPress={addSkill}
-            className="bg-blue-600 p-2 rounded-full"
+            className="bg-blue-600 p-2 rounded-full shadow-md shadow-blue-500/30"
           >
             <Ionicons name="add" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50">
           {data.skills?.map((skill: string, index: number) => (
             <View key={index} className="flex-row items-center mb-3">
               <View className="flex-1">

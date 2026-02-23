@@ -1,13 +1,15 @@
 import { ResumeData } from "@/interfaces/resume";
 import { Button } from "@/src/components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
-  Linking,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Linking,
+    Modal,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -65,8 +67,18 @@ export const ResumePreviewModal = ({
   onClose,
   data,
 }: PreviewModalProps) => {
+  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+
   const handlePortfolioPress = () => {
     Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
+  };
+
+  const handleExportWord = () => {
+    Alert.alert(
+      "Export to Word",
+      "This feature is currently generating your .docx file. (Mock implementation)",
+      [{ text: "OK" }],
+    );
   };
 
   return (
@@ -76,11 +88,58 @@ export const ResumePreviewModal = ({
       presentationStyle="pageSheet"
     >
       <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-        <View className="flex-row justify-between items-center px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <View className="flex-row justify-between items-center px-4 py-3 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
           <Text className="text-lg font-bold dark:text-white">
             Resume Preview
           </Text>
-          <Button title="Close" variant="ghost" onPress={onClose} size="sm" />
+          <View className="flex-row gap-2">
+            <Button
+              title="Word"
+              variant="outline"
+              onPress={handleExportWord}
+              size="sm"
+              className="border-blue-200 dark:border-blue-800"
+            />
+            <Button title="Close" variant="ghost" onPress={onClose} size="sm" />
+          </View>
+        </View>
+
+        <View className="px-4 py-2 bg-slate-100 dark:bg-slate-800 flex-row items-center justify-between">
+          <Text className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            Template:
+          </Text>
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              onPress={() => setSelectedTemplate("modern")}
+              className={`px-3 py-1 rounded-full ${selectedTemplate === "modern" ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"}`}
+            >
+              <Text
+                className={`text-xs font-bold ${selectedTemplate === "modern" ? "text-white" : "text-slate-600 dark:text-slate-300"}`}
+              >
+                Modern
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSelectedTemplate("classic")}
+              className={`px-3 py-1 rounded-full ${selectedTemplate === "classic" ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"}`}
+            >
+              <Text
+                className={`text-xs font-bold ${selectedTemplate === "classic" ? "text-white" : "text-slate-600 dark:text-slate-300"}`}
+              >
+                Classic
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSelectedTemplate("minimal")}
+              className={`px-3 py-1 rounded-full ${selectedTemplate === "minimal" ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"}`}
+            >
+              <Text
+                className={`text-xs font-bold ${selectedTemplate === "minimal" ? "text-white" : "text-slate-600 dark:text-slate-300"}`}
+              >
+                Minimal
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView

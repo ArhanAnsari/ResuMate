@@ -13,12 +13,12 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  FlatList,
-  Modal,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Modal,
+    RefreshControl,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -140,7 +140,7 @@ export default function ResumeDashboard() {
           onLongPress={() => handleLongPress(item.$id, item.title)}
           onPress={() => router.push(`/(app)/resume/${item.$id}`)}
         >
-          <Card className="mb-4 bg-white dark:bg-slate-800">
+          <Card className="mb-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50 shadow-lg shadow-slate-200/50 dark:shadow-none">
             <View className="flex-row justify-between items-center">
               <View className="flex-1 pr-4">
                 <Text
@@ -163,7 +163,7 @@ export default function ResumeDashboard() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950 px-4 pt-4">
-      <View className="flex-row justify-between items-center mb-6">
+      <View className="flex-row justify-between items-center mb-6 bg-white/50 dark:bg-slate-900/50 p-4 rounded-2xl backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-sm">
         <View>
           <Text className="text-2xl font-bold text-slate-900 dark:text-white">
             My Resumes
@@ -174,6 +174,7 @@ export default function ResumeDashboard() {
           title="Create"
           size="sm"
           onPress={() => router.push("/(app)/(tabs)/create")}
+          className="bg-blue-600 shadow-md shadow-blue-500/30"
         />
       </View>
 
