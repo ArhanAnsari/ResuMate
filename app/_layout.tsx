@@ -1,11 +1,14 @@
 import "@/global.css";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { usePlanStore } from "@/src/store/usePlanStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Sentry from "@sentry/react-native";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { CopilotProvider } from "react-native-copilot";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -34,41 +37,65 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
-// Initialize Notification Handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Initialize Notification Handler — local notifications still work in dev builds.
+// Expo Go SDK 53 removed remote push support; guard to prevent startup error.
+if (Constants.appOwnership !== "expo") {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export default function RootLayout() {
   const { isAuthenticated, initialize, isLoading } = useAuthStore();
-  const segments = useSegments();
+  const { initPurchases } = usePlanStore();
   const router = useRouter();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
 
   useEffect(() => {
     initialize();
+    AsyncStorage.getItem("resumate_onboarding_done").then((val) => {
+      setOnboardingDone(val === "true");
+      setOnboardingChecked(true);
+    });
   }, []);
 
+  // Initialize RevenueCat once the user is authenticated
   useEffect(() => {
-    if (isLoading) return;
+    if (isAuthenticated) {
+      const { user } = useAuthStore.getState();
+      initPurchases(user?.$id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
-    const inAuthGroup = segments[0] === "(auth)";
-    const inAppGroup = segments[0] === "(app)";
+  // Navigate based purely on auth/onboarding state.
+  // Do NOT include `segments` or `router` as deps — doing so causes an infinite
+  // loop because router.replace() changes segments, re-firing this effect.
+  useEffect(() => {
+    if (isLoading || !onboardingChecked) return;
 
-    if (isAuthenticated && !inAppGroup) {
+    if (!onboardingDone) {
+      router.replace("/onboarding");
+      return;
+    }
+
+    if (isAuthenticated) {
       router.replace("/(app)/(tabs)");
-    } else if (!isAuthenticated && !inAuthGroup) {
+    } else {
       router.replace("/(auth)/sign-in");
     }
-  }, [isAuthenticated, segments, isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isLoading, onboardingChecked, onboardingDone]);
 
-  if (isLoading) {
-    return <View className="flex-1 bg-slate-50 dark:bg-slate-950" />;
+  if (isLoading || !onboardingChecked) {
+    return <View className="flex-1 bg-slate-950" />;
   }
 
   return (
@@ -88,7 +115,16 @@ export default function RootLayout() {
         }}
       >
         <ToastProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
+            <Stack.Screen
+              name="auth/callback"
+              options={{ animation: "fade" }}
+            />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(app)" />
+            <Stack.Screen name="index" />
+          </Stack>
           <StatusBar style="auto" />
         </ToastProvider>
       </CopilotProvider>

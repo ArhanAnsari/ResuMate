@@ -56,7 +56,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         ],
         education: [
           {
-            school: "University Name",
+            institution: "University Name",
             degree: "Bachelor of Science in Computer Science",
             startDate: "2018",
             endDate: "2022",

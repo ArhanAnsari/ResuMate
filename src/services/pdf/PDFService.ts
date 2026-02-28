@@ -97,7 +97,7 @@ export class PDFService {
                         (edu: any) => `
                         <div class="item">
                             <div class="item-header">
-                                <span>${edu.school}</span>
+                                <span>${edu.institution || edu.school || ""}</span>
                                 <span class="date">${edu.startDate} - ${edu.endDate || "Present"}</span>
                             </div>
                             <div class="subtitle">${edu.degree}</div>

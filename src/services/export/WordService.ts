@@ -1,12 +1,11 @@
 import { ResumeData } from "@/interfaces/resume";
-import { Buffer } from "buffer";
 import {
-    AlignmentType,
-    Document,
-    HeadingLevel,
-    Packer,
-    Paragraph,
-    TextRun,
+  AlignmentType,
+  Document,
+  HeadingLevel,
+  Packer,
+  Paragraph,
+  TextRun,
 } from "docx";
 // Use legacy import for compatibility with older code patterns or specific features
 import * as FileSystem from "expo-file-system/legacy";
@@ -33,9 +32,9 @@ export const WordService = {
         ],
       });
 
-      const buffer = await Packer.toBuffer(doc);
-      // @ts-ignore
-      const base64 = Buffer.from(buffer).toString("base64");
+      // Packer.toBase64String() works in React Native (no Node.js Buffer needed).
+      // Packer.toBuffer() fails with "nodebuffer is not supported" in RN's JS runtime.
+      const base64 = await Packer.toBase64String(doc);
       const filename = `${FileSystem.documentDirectory}${data.profile?.fullName || "Resume"}.docx`;
 
       await FileSystem.writeAsStringAsync(filename, base64, {
@@ -142,7 +141,8 @@ export const WordService = {
         new Paragraph({
           children: [
             new TextRun({
-              text: edu.institution,
+              // Support both interface field (institution) and legacy field (school)
+              text: edu.institution || (edu as any).school || "",
               bold: true,
             }),
             new TextRun({
@@ -172,8 +172,11 @@ export const WordService = {
   generateSkills(data: ResumeData, template: string): Paragraph[] {
     if (!data.skills?.length) return [];
 
-    // Group skills by category if possible, or just list them
-    const skillText = data.skills.map((s) => s.name).join(", ");
+    // Handle both plain string skills and SkillItem objects
+    const skillText = data.skills
+      .map((s: any) => (typeof s === "string" ? s : s.name))
+      .filter(Boolean)
+      .join(", ");
 
     return [
       new Paragraph({

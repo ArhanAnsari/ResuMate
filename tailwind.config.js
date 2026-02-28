@@ -1,37 +1,62 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./shared/**/*.{js,jsx,ts,tsx}",
+  ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        primary: "#2563EB", // Blue 600
-        primaryDark: "#1E40AF",
-        secondary: "#64748B", // Slate 500
-        background: "#F8FAFC", // Slate 50
-        foreground: "#0F172A", // Slate 900
-        surface: "#FFFFFF",
-        text: "#0F172A", // Slate 900
-        textSecondary: "#475569", // Slate 600
-        textTertiary: "#94A3B8", // Slate 400
-        border: "#E2E8F0", // Slate 200
-        error: "#EF4444",
-        success: "#22C55E",
-        warning: "#F59E0B",
+        // === PRIMARY (Indigo) ===
+        primary: "#4F46E5",
+        "primary-light": "#818CF8",
+        "primary-dark": "#3730A3",
+        "primary-glow": "#6366F1",
 
-        // Semantic Colors (shadcn-like)
+        // === PREMIUM (Violet) ===
+        premium: "#7C3AED",
+        "premium-light": "#A78BFA",
+        "premium-dark": "#5B21B6",
+
+        // === SECONDARY (Emerald) ===
+        secondary: "#10B981",
+        "secondary-light": "#34D399",
+        "secondary-dark": "#059669",
+
+        // === SURFACES ===
+        background: "#F8FAFC",
+        "background-dark": "#0A0F1E",
+        surface: "#FFFFFF",
+        "surface-dark": "#111827",
         card: "#FFFFFF",
-        "card-foreground": "#0F172A",
-        popover: "#FFFFFF",
-        "popover-foreground": "#0F172A",
-        muted: "#F1F5F9", // Slate 100
-        "muted-foreground": "#64748B", // Slate 500
-        accent: "#F1F5F9", // Slate 100
-        "accent-foreground": "#0F172A",
+        "card-dark": "#1C2333",
+
+        // === TEXT ===
+        foreground: "#0F172A",
+        "foreground-dark": "#F1F5F9",
+        muted: "#64748B",
+        "muted-dark": "#94A3B8",
+
+        // === BORDERS ===
+        border: "#E2E8F0",
+        "border-dark": "#1E293B",
+
+        // === SEMANTIC ===
+        error: "#EF4444",
+        success: "#10B981",
+        warning: "#F59E0B",
+        info: "#4F46E5",
         destructive: "#EF4444",
         "destructive-foreground": "#FFFFFF",
         input: "#E2E8F0",
-        ring: "#2563EB",
+        ring: "#4F46E5",
+
+        // Legacy compat
+        "muted-foreground": "#64748B",
+        "accent-foreground": "#0F172A",
+        "card-foreground": "#0F172A",
       },
       spacing: {
         xs: "4px",
@@ -40,12 +65,13 @@ module.exports = {
         lg: "24px",
         xl: "32px",
         xxl: "48px",
+        xxxl: "64px",
       },
       borderRadius: {
-        sm: "6px",
-        md: "8px",
-        lg: "12px",
-        xl: "16px",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "24px",
       },
       fontFamily: {
         regular: ["System"],

@@ -1,11 +1,13 @@
-import { Button } from "@/src/components/ui/Button";
+﻿import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { CustomAlert } from "@/src/components/ui/CustomAlert";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { SkeletonResumeCard } from "@/src/components/ui/SkeletonLoader";
+import { UpgradeBanner } from "@/src/components/ui/PremiumBadge";
 import { useToast } from "@/src/context/ToastContext";
 import { NotificationService } from "@/src/services/notifications/NotificationService";
 import { PDFService } from "@/src/services/pdf/PDFService";
 import { useAuthStore } from "@/src/store/useAuthStore";
-
 import { useResumeStore } from "@/src/store/useResumeStore";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,15 +15,40 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    FlatList,
-    Modal,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  RefreshControl,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const ATSBadge = ({ score }: { score?: number }) => {
+  if (score === undefined || score === null) return null;
+  const color =
+    score >= 80 ? "#10B981" : score >= 60 ? "#F59E0B" : "#EF4444";
+  const bg =
+    score >= 80 ? "#ECFDF5" : score >= 60 ? "#FFFBEB" : "#FEF2F2";
+  const darkBg =
+    score >= 80 ? "#022C22" : score >= 60 ? "#2D1600" : "#2D0A0A";
+  return (
+    <View
+      style={{ backgroundColor: bg }}
+      className="dark:bg-opacity-20 flex-row items-center gap-1 px-2 py-0.5 rounded-full"
+    >
+      <View
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <Text className="text-xs font-bold" style={{ color }}>
+        ATS {score}%
+      </Text>
+    </View>
+  );
+};
 
 export default function ResumeDashboard() {
   const { user } = useAuthStore();
@@ -37,14 +64,10 @@ export default function ResumeDashboard() {
     id: string;
     title: string;
   } | null>(null);
-
-  // Keep track of open swipeable rows to close them when another opens
   const openSwipeableRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
-    if (user?.$id) {
-      fetchResumes(user.$id);
-    }
+    if (user?.$id) fetchResumes(user.$id);
   }, [user]);
 
   const confirmDelete = (id: string) => {
@@ -56,104 +79,133 @@ export default function ResumeDashboard() {
 
   const performDelete = async () => {
     if (!resumeToDelete) return;
-
     setDeleteModalVisible(false);
-    setOptionsModalVisible(false); // Close options if open
-
+    setOptionsModalVisible(false);
     try {
       await deleteResume(resumeToDelete);
-      showToast("Resume deleted successfully", "success");
-    } catch (error) {
+      showToast("Resume deleted", "success");
+    } catch {
       showToast("Failed to delete resume", "error");
     }
     setResumeToDelete(null);
   };
+
   const handleExport = async (id: string) => {
     const resume = resumes.find((r) => r.$id === id);
-    if (!resume) {
-      showToast("Resume not found", "error");
-      return;
-    }
-
+    if (!resume) { showToast("Resume not found", "error"); return; }
     setOptionsModalVisible(false);
-    showToast("Generating PDF...", "info");
-
+    showToast("Generating PDF…", "info");
     try {
       await PDFService.generateAndShare(resume);
       if (hapticsEnabled)
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Send a local notification
       await NotificationService.scheduleNotification(
         "Export Successful",
-        `Your resume "${resume.title}" is ready.`,
+        `"${resume.title}" is ready.`,
       );
-
-      showToast("Export successful", "success");
-    } catch (error) {
+      showToast("PDF exported!", "success");
+    } catch {
       showToast("Failed to export PDF", "error");
     }
   };
+
   const handleLongPress = (id: string, title: string) => {
     if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setSelectedResume({ id, title });
     setOptionsModalVisible(true);
   };
 
-  const renderRightActions = (id: string) => {
-    return (
-      <TouchableOpacity
-        className="bg-red-500 justify-center items-center w-20 mb-4 ml-4 rounded-lg h-5/6 self-center"
-        onPress={() => confirmDelete(id)}
-      >
-        <Ionicons name="trash-outline" size={24} color="white" />
-      </TouchableOpacity>
-    );
-  };
-
   const onSwipeableWillOpen = (swipeable: Swipeable) => {
-    if (openSwipeableRef.current && openSwipeableRef.current !== swipeable) {
+    if (openSwipeableRef.current && openSwipeableRef.current !== swipeable)
       openSwipeableRef.current.close();
-    }
     openSwipeableRef.current = swipeable;
     if (hapticsEnabled) Haptics.selectionAsync();
   };
 
+  const renderRightActions = (id: string) => (
+    <TouchableOpacity
+      className="bg-red-500 justify-center items-center w-20 mb-3 ml-2 rounded-2xl"
+      onPress={() => confirmDelete(id)}
+    >
+      <Ionicons name="trash-outline" size={22} color="white" />
+      <Text className="text-white text-xs font-semibold mt-1">Delete</Text>
+    </TouchableOpacity>
+  );
+
   const renderItem = ({ item }: { item: any }) => {
     let swipeableRef: Swipeable | null = null;
-    // ... existing wrapper logic
+    const atsScore = item.atsScore ?? undefined;
+    const updatedAgo = new Date(item.$updatedAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+
     return (
       <Swipeable
-        ref={(ref) => {
-          swipeableRef = ref;
-        }}
+        ref={(ref) => { swipeableRef = ref; }}
         renderRightActions={() => renderRightActions(item.$id)}
         onSwipeableWillOpen={() => {
-          if (swipeableRef) {
-            onSwipeableWillOpen(swipeableRef);
-          }
+          if (swipeableRef) onSwipeableWillOpen(swipeableRef);
         }}
         containerStyle={{ overflow: "visible" }}
       >
         <TouchableOpacity
-          activeOpacity={0.9}
+          activeOpacity={0.88}
           onLongPress={() => handleLongPress(item.$id, item.title)}
           onPress={() => router.push(`/(app)/resume/${item.$id}`)}
+          className="mb-3"
         >
-          <Card className="mb-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-white/20 dark:border-slate-800/50 shadow-lg shadow-slate-200/50 dark:shadow-none">
-            <View className="flex-row justify-between items-center">
-              <View className="flex-1 pr-4">
-                <Text
-                  className="text-lg font-bold text-slate-900 dark:text-white"
-                  numberOfLines={1}
-                >
-                  {item.title}
-                </Text>
-                <Text className="text-sm text-slate-500 mt-1">
-                  Updated {new Date(item.$updatedAt).toLocaleDateString()}
-                </Text>
+          <Card variant="elevated" className="p-0 overflow-hidden">
+            {/* Accent bar */}
+            <View className="h-1 bg-indigo-500 rounded-t-2xl" />
+            <View className="p-4">
+              <View className="flex-row justify-between items-start">
+                <View className="flex-1 pr-3">
+                  <Text
+                    className="text-base font-bold text-slate-900 dark:text-white mb-1"
+                    numberOfLines={1}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text className="text-xs text-slate-400">
+                    Updated {updatedAgo}
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  {atsScore !== undefined && <ATSBadge score={atsScore} />}
+                  <View className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 items-center justify-center">
+                    <Ionicons name="document-text" size={16} color="#4F46E5" />
+                  </View>
+                </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
+
+              {/* Action row */}
+              <View className="flex-row gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+                <TouchableOpacity
+                  onPress={() => router.push(`/(app)/resume/${item.$id}`)}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 py-2 rounded-xl"
+                >
+                  <Ionicons name="create-outline" size={15} color="#4F46E5" />
+                  <Text className="text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleExport(item.$id)}
+                  className="flex-1 flex-row items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-700/50 py-2 rounded-xl"
+                >
+                  <Ionicons name="share-outline" size={15} color="#64748B" />
+                  <Text className="text-slate-600 dark:text-slate-300 text-xs font-semibold">
+                    Export
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleLongPress(item.$id, item.title)}
+                  className="w-9 items-center justify-center bg-slate-100 dark:bg-slate-700/50 py-2 rounded-xl"
+                >
+                  <Ionicons name="ellipsis-horizontal" size={15} color="#64748B" />
+                </TouchableOpacity>
+              </View>
             </View>
           </Card>
         </TouchableOpacity>
@@ -161,35 +213,91 @@ export default function ResumeDashboard() {
     );
   };
 
+  const firstName = user?.name?.split(" ")[0] || "there";
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950 px-4 pt-4">
-      <View className="flex-row justify-between items-center mb-6 bg-white/50 dark:bg-slate-900/50 p-4 rounded-2xl backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-sm">
-        <View>
-          <Text className="text-2xl font-bold text-slate-900 dark:text-white">
-            My Resumes
-          </Text>
-          <Text className="text-slate-500">Welcome back, {user?.name}</Text>
+    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header */}
+      <View className="px-5 pt-4 pb-5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        <View className="flex-row justify-between items-center">
+          <View>
+            <Text className="text-2xl font-bold text-slate-900 dark:text-white">
+              Hello, {firstName} 👋
+            </Text>
+            <Text className="text-slate-500 text-sm mt-0.5">
+              {resumes.length} resume{resumes.length !== 1 ? "s" : ""} · Ready to impress
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/(tabs)/create")}
+            className="bg-indigo-600 w-10 h-10 rounded-full items-center justify-center shadow-md shadow-indigo-500/30"
+          >
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-        <Button
-          title="Create"
-          size="sm"
-          onPress={() => router.push("/(app)/(tabs)/create")}
-          className="bg-blue-600 shadow-md shadow-blue-500/30"
-        />
+
+        {/* Quick actions */}
+        <View className="flex-row gap-2 mt-4">
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/(tabs)/create")}
+            className="flex-row items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 px-3 py-2 rounded-xl"
+          >
+            <Ionicons name="add-circle-outline" size={16} color="#4F46E5" />
+            <Text className="text-indigo-700 dark:text-indigo-300 text-xs font-semibold">New Resume</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/(tabs)/ai")}
+            className="flex-row items-center gap-1.5 bg-violet-50 dark:bg-violet-900/30 border border-violet-100 dark:border-violet-800/50 px-3 py-2 rounded-xl"
+          >
+            <Ionicons name="sparkles-outline" size={16} color="#7C3AED" />
+            <Text className="text-violet-700 dark:text-violet-300 text-xs font-semibold">AI Tools</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/profile")}
+            className="flex-row items-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl"
+          >
+            <Ionicons name="person-circle-outline" size={16} color="#64748B" />
+            <Text className="text-slate-600 dark:text-slate-300 text-xs font-semibold">Profile</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
-        data={resumes}
+        data={isLoading ? [] : resumes}
         renderItem={renderItem}
         keyExtractor={(item) => item.$id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          isLoading ? (
+            <View>
+              <SkeletonResumeCard />
+              <SkeletonResumeCard />
+              <SkeletonResumeCard />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           !isLoading ? (
-            <View className="items-center justify-center py-20">
-              <Ionicons name="documents-outline" size={64} color="#CBD5E1" />
-              <Text className="text-slate-400 mt-4 text-center">
-                No resumes found.{"\n"}Create your first one!
-              </Text>
+            <EmptyState
+              icon="document-text-outline"
+              title="No resumes yet"
+              subtitle="Create your first resume in minutes with AI assistance"
+              actionLabel="Create Resume"
+              onAction={() => router.push("/(app)/(tabs)/create")}
+            />
+          ) : null
+        }
+        ListFooterComponent={
+          resumes.length > 0 && !isLoading ? (
+            <View className="mt-2">
+              <UpgradeBanner
+                title="Unlock AI-Powered Features"
+                subtitle="ATS scoring, cover letters & interview prep"
+                onPress={() => router.push("/(app)/(tabs)/ai")}
+              />
             </View>
           ) : null
         }
@@ -197,14 +305,17 @@ export default function ResumeDashboard() {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={() => user?.$id && fetchResumes(user.$id)}
+            tintColor="#4F46E5"
+            colors={["#4F46E5"]}
           />
         }
       />
 
+      {/* Delete confirm */}
       <CustomAlert
         visible={deleteModalVisible}
         title="Delete Resume"
-        message="Are you sure you want to delete this resume? This action cannot be undone."
+        message="This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         type="destructive"
@@ -212,79 +323,71 @@ export default function ResumeDashboard() {
         onConfirm={performDelete}
       />
 
-      {/* Quick Actions Modal */}
+      {/* Options Modal */}
       <Modal
         transparent
         visible={optionsModalVisible}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setOptionsModalVisible(false)}
       >
         <TouchableOpacity
-          className="flex-1 justify-end bg-black/50"
+          className="flex-1 justify-end bg-black/60"
           activeOpacity={1}
           onPress={() => setOptionsModalVisible(false)}
         >
           <View className="bg-white dark:bg-slate-900 rounded-t-3xl p-6 border-t border-slate-200 dark:border-slate-800">
-            <Text className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-center">
+            {/* Handle */}
+            <View className="w-12 h-1 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-5" />
+            <Text className="text-lg font-bold text-slate-900 dark:text-white mb-5 text-center">
               {selectedResume?.title}
             </Text>
 
-            <TouchableOpacity
-              className="flex-row items-center p-4 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3"
-              onPress={() => {
-                setOptionsModalVisible(false);
-                if (selectedResume)
-                  router.push(`/(app)/resume/${selectedResume.id}`);
-              }}
-            >
-              <Ionicons
-                name="create-outline"
-                size={24}
-                className="text-slate-900 dark:text-white mr-3"
-              />
-              {/* NativeWind might not apply to Ionicons directly via className, using style or color prop is better but let's try strict props */}
-              <Text className="text-lg font-medium text-slate-900 dark:text-white">
-                Edit Resume
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-row items-center p-4 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3"
-              onPress={() => {
-                if (selectedResume) handleExport(selectedResume.id);
-              }}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={24}
-                className="text-slate-900 dark:text-white mr-3"
-              />
-              <Text className="text-lg font-medium text-slate-900 dark:text-white">
-                Export PDF
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-row items-center p-4 bg-red-50 dark:bg-red-900/20 rounded-xl mb-6"
-              onPress={() => {
-                if (selectedResume) confirmDelete(selectedResume.id);
-              }}
-            >
-              <Ionicons
-                name="trash-outline"
-                size={24}
-                color="#EF4444"
-                style={{ marginRight: 12 }}
-              />
-              <Text className="text-lg font-medium text-red-500">
-                Delete Resume
-              </Text>
-            </TouchableOpacity>
+            {[
+              {
+                icon: "create-outline" as const,
+                label: "Edit Resume",
+                className: "bg-indigo-50 dark:bg-indigo-900/20",
+                textColor: "text-indigo-700 dark:text-indigo-300",
+                iconColor: "#4F46E5",
+                onPress: () => {
+                  setOptionsModalVisible(false);
+                  if (selectedResume) router.push(`/(app)/resume/${selectedResume.id}`);
+                },
+              },
+              {
+                icon: "share-outline" as const,
+                label: "Export PDF",
+                className: "bg-slate-100 dark:bg-slate-800",
+                textColor: "text-slate-800 dark:text-slate-200",
+                iconColor: "#64748B",
+                onPress: () => { if (selectedResume) handleExport(selectedResume.id); },
+              },
+              {
+                icon: "trash-outline" as const,
+                label: "Delete",
+                className: "bg-red-50 dark:bg-red-900/20",
+                textColor: "text-red-600",
+                iconColor: "#EF4444",
+                onPress: () => { if (selectedResume) confirmDelete(selectedResume.id); },
+              },
+            ].map((action) => (
+              <TouchableOpacity
+                key={action.label}
+                className={`flex-row items-center gap-3 p-4 rounded-2xl mb-2 ${action.className}`}
+                onPress={action.onPress}
+              >
+                <Ionicons name={action.icon} size={22} color={action.iconColor} />
+                <Text className={`text-base font-semibold ${action.textColor}`}>
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
 
             <Button
               title="Cancel"
               variant="ghost"
               onPress={() => setOptionsModalVisible(false)}
+              className="mt-2"
             />
           </View>
         </TouchableOpacity>

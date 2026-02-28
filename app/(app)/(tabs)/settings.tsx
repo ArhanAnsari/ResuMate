@@ -1,37 +1,93 @@
+﻿import { AppwriteImage } from "@/src/components/ui/AppwriteImage";
 import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
 import { useToast } from "@/src/context/ToastContext";
 import { AIService } from "@/src/services/ai/gemini";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { usePlanStore } from "@/src/store/usePlanStore";
 import { useProfileStore } from "@/src/store/useProfileStore";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Linking,
-    ScrollView,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Linking,
+  ScrollView,
+  StatusBar,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+interface SettingRowProps {
+  icon: keyof typeof import("@expo/vector-icons/build/Icons").Ionicons.glyphMap;
+  iconBg: string;
+  iconColor: string;
+  label: string;
+  sublabel?: string;
+  onPress?: () => void;
+  right?: React.ReactNode;
+  showBorder?: boolean;
+}
+
+const SettingRow = ({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  sublabel,
+  onPress,
+  right,
+  showBorder = true,
+}: SettingRowProps) => (
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={onPress ? 0.7 : 1}
+    className={`flex-row items-center justify-between px-4 py-3.5 ${
+      showBorder ? "border-b border-slate-100 dark:border-slate-800" : ""
+    }`}
+  >
+    <View className="flex-row items-center gap-3 flex-1">
+      <View
+        className="w-9 h-9 rounded-xl items-center justify-center"
+        style={{ backgroundColor: iconBg }}
+      >
+        <Ionicons name={icon} size={18} color={iconColor} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
+          {label}
+        </Text>
+        {sublabel ? (
+          <Text className="text-xs text-slate-400 mt-0.5">{sublabel}</Text>
+        ) : null}
+      </View>
+    </View>
+    {right ??
+      (onPress ? (
+        <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+      ) : null)}
+  </TouchableOpacity>
+);
+
+const SectionTitle = ({ title }: { title: string }) => (
+  <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-2 mt-6">
+    {title}
+  </Text>
+);
+
 export default function Settings() {
-  const handlePortfolioPress = () => {
-    Linking.openURL("https://arhanansari.vercel.app"); // Replace with actual portfolio URL
-  };
   const { user, logout } = useAuthStore();
   const { profile, fetchProfile } = useProfileStore();
+  const { currentPlan } = usePlanStore();
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
   const { showToast } = useToast();
   const router = useRouter();
   const [apiKey, setApiKey] = useState("");
-  const [isKeyVisible, setIsKeyVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -43,10 +99,10 @@ export default function Settings() {
 
   const loadKey = async () => {
     try {
-      const storedKey = await AIService.getStoredApiKey();
-      if (storedKey) setApiKey(storedKey);
-    } catch (error) {
-      console.warn("Failed to load API key:", error);
+      const stored = await AIService.getStoredApiKey();
+      if (stored) setApiKey(stored);
+    } catch (e) {
+      console.warn("Failed to load API key:", e);
     }
   };
 
@@ -55,16 +111,14 @@ export default function Settings() {
       showToast("Please enter a valid API key", "error");
       return;
     }
-
-    if (hapticsEnabled)
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setIsSaving(true);
     try {
       await AIService.setApiKey(apiKey);
-      showToast("API Key saved successfully", "success");
-    } catch (error) {
+      if (hapticsEnabled)
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast("API Key saved", "success");
+    } catch {
       showToast("Failed to save API Key", "error");
-      console.error(error);
     } finally {
       setIsSaving(false);
     }
@@ -72,7 +126,7 @@ export default function Settings() {
 
   const handleLogout = () => {
     if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert("Sign Out", "Are you sure?", [
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       { text: "Sign Out", style: "destructive", onPress: logout },
     ]);
@@ -80,155 +134,225 @@ export default function Settings() {
 
   const handleToggleHaptics = () => {
     toggleHaptics();
-    if (!hapticsEnabled) Haptics.selectionAsync(); // Provide feedback when enabling
+    if (!hapticsEnabled) Haptics.selectionAsync();
   };
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <Text className="text-sm font-bold text-slate-500 uppercase mb-3 ml-1 mt-6">
-      {title}
-    </Text>
-  );
+  const initials = (
+    profile?.fullName?.[0] ||
+    user?.name?.[0] ||
+    "U"
+  ).toUpperCase();
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <View className="px-6 pt-6 pb-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-        <Text className="text-3xl font-bold text-slate-900 dark:text-white">
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header */}
+      <View className="px-5 pt-4 pb-5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+        <Text className="text-2xl font-bold text-slate-900 dark:text-white">
           Settings
+        </Text>
+        <Text className="text-slate-500 text-sm mt-0.5">
+          Manage your account and preferences
         </Text>
       </View>
 
-      <ScrollView className="flex-1 px-6">
-        <SectionHeader title="Account" />
-        <View className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 mb-2">
-          <TouchableOpacity
-            onPress={() => router.push("/profile")}
-            className="flex-row justify-between items-center p-4"
-          >
-            <View className="flex-row items-center gap-3">
-              {profile?.avatarUrl ? (
-                <Image
-                  source={{ uri: profile.avatarUrl }}
-                  className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-100 dark:border-slate-700"
-                  contentFit="cover"
-                  transition={500}
-                />
-              ) : (
-                <View className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full w-12 h-12 items-center justify-center">
-                  <Text className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {profile?.fullName?.[0]?.toUpperCase() ||
-                      user?.name?.[0]?.toUpperCase() ||
-                      "U"}
-                  </Text>
-                </View>
-              )}
-              <View>
-                <Text className="text-base font-bold text-slate-900 dark:text-white">
-                  {profile?.fullName || user?.name || "User"}
-                </Text>
-                <Text className="text-xs text-slate-500">{user?.email}</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
-
-        <SectionHeader title="Preferences" />
-        <View className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
-          <View className="flex-row justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800">
-            <View className="flex-row items-center gap-3">
-              <View className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
-                <Ionicons
-                  name="hardware-chip-outline"
-                  size={20}
-                  color="#2563EB"
-                />
-              </View>
-              <Text className="text-base font-medium text-slate-900 dark:text-white">
-                Haptic Feedback
+      <ScrollView
+        className="flex-1 px-5"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        {/* Account profile card */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/profile")}
+          activeOpacity={0.88}
+          className="mt-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex-row items-center gap-4"
+        >
+          {profile?.avatarUrl ? (
+            <AppwriteImage
+              uri={profile.avatarUrl}
+              className="w-14 h-14 rounded-full border-2 border-indigo-500"
+              contentFit="cover"
+              transition={400}
+            />
+          ) : (
+            <View className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/30 border-2 border-indigo-300 dark:border-indigo-700 items-center justify-center">
+              <Text className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                {initials}
               </Text>
             </View>
-            <Switch
-              value={hapticsEnabled}
-              onValueChange={handleToggleHaptics}
-              trackColor={{ false: "#CBD5E1", true: "#93C5FD" }}
-              thumbColor={hapticsEnabled ? "#2563EB" : "#F1F5F9"}
+          )}
+          <View className="flex-1">
+            <Text className="text-base font-bold text-slate-900 dark:text-white">
+              {profile?.fullName || user?.name || "User"}
+            </Text>
+            <Text className="text-xs text-slate-400 mt-0.5">{user?.email}</Text>
+            <Text className="text-xs text-indigo-500 font-semibold mt-1">
+              Edit Profile
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+        </TouchableOpacity>
+
+        {/* Preferences */}
+        <SectionTitle title="Subscription" />
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/plan")}
+          activeOpacity={0.88}
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex-row items-center gap-4"
+        >
+          <View
+            className="w-10 h-10 rounded-xl items-center justify-center"
+            style={{
+              backgroundColor:
+                currentPlan === "premium"
+                  ? "#7C3AED20"
+                  : currentPlan === "pro"
+                    ? "#4F46E520"
+                    : "#64748B20",
+            }}
+          >
+            <Ionicons
+              name="diamond-outline"
+              size={20}
+              color={
+                currentPlan === "premium"
+                  ? "#7C3AED"
+                  : currentPlan === "pro"
+                    ? "#4F46E5"
+                    : "#64748B"
+              }
             />
           </View>
-          {/* Future: Theme Toggle could go here */}
+          <View className="flex-1">
+            <Text className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+              {currentPlan} Plan
+            </Text>
+            <Text className="text-xs text-slate-400 mt-0.5">
+              {currentPlan === "free"
+                ? "Upgrade to unlock all features"
+                : "Manage or change your plan"}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+        </TouchableOpacity>
+
+        {/* Preferences */}
+        <SectionTitle title="Preferences" />
+        <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <SettingRow
+            icon="hardware-chip-outline"
+            iconBg="#EFF6FF"
+            iconColor="#2563EB"
+            label="Haptic Feedback"
+            sublabel="Vibration on interactions"
+            right={
+              <Switch
+                value={hapticsEnabled}
+                onValueChange={handleToggleHaptics}
+                trackColor={{ false: "#E2E8F0", true: "#A5B4FC" }}
+                thumbColor={hapticsEnabled ? "#4F46E5" : "#F8FAFC"}
+              />
+            }
+          />
+          <SettingRow
+            icon="notifications-outline"
+            iconBg="#FEF9C3"
+            iconColor="#D97706"
+            label="Push Notifications"
+            sublabel="Export ready & reminders"
+            showBorder={false}
+            right={
+              <Switch
+                value={true}
+                disabled
+                trackColor={{ true: "#A5B4FC" }}
+                thumbColor="#4F46E5"
+              />
+            }
+          />
         </View>
 
-        <SectionHeader title="AI Configuration" />
-        <View className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-          <View className="relative">
-            <Input
-              label="Gemini API Key (Optional)"
-              placeholder="Paste your API Key here"
-              value={apiKey}
-              onChangeText={setApiKey}
-              secureTextEntry={!isKeyVisible}
-              autoCapitalize="none"
-              containerClassName="mb-2"
-            />
-            <TouchableOpacity
-              className="absolute right-4 top-10 z-10 p-2"
-              onPress={() => setIsKeyVisible(!isKeyVisible)}
-            >
-              <Ionicons
-                name={isKeyVisible ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color="#94A3B8"
-              />
-            </TouchableOpacity>
+        {/* AI Configuration */}
+        <SectionTitle title="AI Configuration" />
+        <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <View className="w-9 h-9 rounded-xl items-center justify-center bg-violet-100 dark:bg-violet-900/30">
+              <Ionicons name="sparkles-outline" size={18} color="#7C3AED" />
+            </View>
+            <View>
+              <Text className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                Gemini API Key
+              </Text>
+              <Text className="text-xs text-slate-400">
+                Optional — leave blank to use default
+              </Text>
+            </View>
           </View>
-          <Text className="text-xs text-slate-400 mb-4 px-1">
-            Leave empty to use the app's secure default key.
-          </Text>
+          <Input
+            placeholder="AIza…"
+            value={apiKey}
+            onChangeText={setApiKey}
+            secureTextEntry
+            autoCapitalize="none"
+            leftIcon="key-outline"
+          />
           <Button
-            title="Save Preference"
+            title="Save Key"
             onPress={handleSaveKey}
             loading={isSaving}
             variant="outline"
             size="sm"
+            className="mt-3"
           />
         </View>
 
-        <SectionHeader title="Account" />
-        <View className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 mb-10">
-          <View className="flex-row items-center gap-4 mb-6">
-            <View className="h-12 w-12 bg-slate-100 dark:bg-slate-800 rounded-full items-center justify-center">
-              <Text className="text-xl font-bold text-slate-600 dark:text-slate-400">
-                {user?.name?.charAt(0) || "U"}
-              </Text>
-            </View>
-            <View>
-              <Text className="text-lg font-bold text-slate-900 dark:text-white">
-                {user?.name || "User"}
-              </Text>
-              <Text className="text-slate-500">{user?.email}</Text>
-            </View>
-          </View>
+        {/* Support */}
+        <SectionTitle title="Support" />
+        <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <SettingRow
+            icon="globe-outline"
+            iconBg="#ECFDF5"
+            iconColor="#10B981"
+            label="Developer Portfolio"
+            onPress={() => Linking.openURL("https://arhanansari.me")}
+          />
+          <SettingRow
+            icon="logo-github"
+            iconBg="#F1F5F9"
+            iconColor="#334155"
+            label="GitHub"
+            onPress={() => Linking.openURL("https://github.com/ArhanAnsari")}
+            showBorder={false}
+          />
+        </View>
 
-          <Button
-            title="Sign Out"
+        {/* Sign out */}
+        <SectionTitle title="Account" />
+        <View className="bg-white dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/30 overflow-hidden">
+          <SettingRow
+            icon="log-out-outline"
+            iconBg="#FEF2F2"
+            iconColor="#EF4444"
+            label="Sign Out"
+            sublabel="You will need to sign in again"
             onPress={handleLogout}
-            variant="outline"
-            className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-900"
+            showBorder={false}
           />
         </View>
-        <View className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 items-center">
-          <Text className="text-slate-400 text-xs mb-1">
-            © {new Date().getFullYear()} ResuMate. All rights reserved.
+
+        {/* Footer */}
+        <View className="mt-8 items-center pb-4">
+          <Text className="text-slate-400 text-xs">
+            ResuMate © {new Date().getFullYear()} · Developed by{" "}
           </Text>
-          <View className="flex-row items-center">
-            <Text className="text-slate-500 text-xs">
-              Developed with love by{" "}
+          <TouchableOpacity
+            onPress={() => Linking.openURL("https://arhanansari.vercel.app")}
+          >
+            <Text className="text-indigo-500 font-bold text-xs underline">
+              Arhan Ansari
             </Text>
-            <TouchableOpacity onPress={handlePortfolioPress}>
-              <Text className="text-blue-600 font-bold text-xs underline">
-                Arhan Ansari
-              </Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

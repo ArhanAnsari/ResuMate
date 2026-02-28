@@ -1,21 +1,21 @@
+import { AppwriteImage } from "@/src/components/ui/AppwriteImage";
 import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { useToast } from "@/src/context/ToastContext";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { useProfileStore } from "@/src/store/useProfileStore";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -58,7 +58,7 @@ export default function ProfileScreen() {
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: "images",
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
@@ -127,11 +127,18 @@ export default function ProfileScreen() {
               className="w-24 h-24 bg-slate-200 dark:bg-slate-800 rounded-full items-center justify-center mb-2 overflow-hidden border-2 border-slate-100 dark:border-slate-700 relative"
             >
               {profile?.avatarUrl ? (
-                <Image
-                  source={{ uri: profile.avatarUrl }}
+                <AppwriteImage
+                  uri={profile.avatarUrl}
                   className="w-full h-full"
                   contentFit="cover"
-                  transition={1000}
+                  transition={300}
+                  fallback={
+                    <Text className="text-3xl font-bold text-slate-400">
+                      {formData.fullName?.[0]?.toUpperCase() ||
+                        user?.name?.[0]?.toUpperCase() ||
+                        "?"}
+                    </Text>
+                  }
                 />
               ) : (
                 <Text className="text-3xl font-bold text-slate-400">

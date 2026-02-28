@@ -9,18 +9,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    Share,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
 import DraggableFlatList, {
-  RenderItemParams,
-  ScaleDecorator,
+    RenderItemParams,
+    ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,7 +32,7 @@ const WalkthroughableView = walkthroughable(View);
 export default function ResumeEditor() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { start, copilotEvents } = useCopilot();
+  const { start } = useCopilot();
   const [resume, setResume] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>({});
@@ -143,15 +144,14 @@ export default function ResumeEditor() {
       const context = `Resume Data: ${JSON.stringify(data)}`;
       const result = await AIService.enhanceResumeSection(
         context,
-        "cover_letter" as any,
+        "cover_letter",
       );
 
       Alert.alert("Generated Cover Letter", result, [
         {
-          text: "Copy to Clipboard",
-          onPress: () => {
-            Alert.alert("Copied", "Cover letter copied to clipboard");
-          },
+          text: "Share",
+          onPress: () =>
+            Share.share({ message: result, title: "Cover Letter" }),
         },
         { text: "Close", style: "cancel" },
       ]);
@@ -166,10 +166,7 @@ export default function ResumeEditor() {
     setAiLoading(true);
     try {
       const context = `Resume Data: ${JSON.stringify(data)}`;
-      const result = await AIService.enhanceResumeSection(
-        context,
-        "ats_score" as any,
-      );
+      const result = await AIService.enhanceResumeSection(context, "ats_score");
 
       Alert.alert("ATS Score Analysis", result, [
         { text: "Close", style: "cancel" },
@@ -191,7 +188,7 @@ export default function ResumeEditor() {
             endDate: "",
             description: "",
           }
-        : { school: "", degree: "", startDate: "", endDate: "" };
+        : { institution: "", degree: "", startDate: "", endDate: "" };
 
     setData({ ...data, [section]: [newItem, ...(data[section] || [])] });
   };
@@ -300,20 +297,22 @@ export default function ResumeEditor() {
 
   if (loading)
     return (
-      <View className="flex-1 justify-center">
-        <ActivityIndicator />
-      </View>
+      <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950 justify-center items-center gap-3">
+        <ActivityIndicator size="large" color="#4F46E5" />
+        <Text className="text-slate-400 text-sm">Loading resume…</Text>
+      </SafeAreaView>
     );
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <View className="flex-row justify-between items-center px-4 py-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm z-10 border-b border-slate-200/50 dark:border-slate-800/50">
-        <Button
-          title="Back"
-          variant="ghost"
+      <View className="flex-row justify-between items-center px-4 py-3 bg-white dark:bg-slate-900 z-10 border-b border-slate-200 dark:border-slate-800">
+        <TouchableOpacity
           onPress={() => router.back()}
-          size="sm"
-        />
+          className="flex-row items-center gap-1"
+        >
+          <Ionicons name="chevron-back" size={20} color="#4F46E5" />
+          <Text className="text-indigo-600 font-semibold text-sm">Back</Text>
+        </TouchableOpacity>
         <CopilotStep
           text="Tap here to rename your resume"
           order={1}
@@ -332,27 +331,37 @@ export default function ResumeEditor() {
             <Ionicons name="pencil" size={14} color="#64748B" />
           </WalkthroughableTouchableOpacity>
         </CopilotStep>
-        <Button
-          title="Save"
+        <TouchableOpacity
           onPress={saveResume}
-          loading={isSaving}
-          size="sm"
-        />
+          disabled={isSaving}
+          style={{ opacity: isSaving ? 0.6 : 1 }}
+          className="flex-row items-center gap-1.5 bg-indigo-600 px-4 py-2 rounded-xl"
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Ionicons name="checkmark-circle-outline" size={16} color="white" />
+          )}
+          <Text className="text-white font-bold text-sm">Save</Text>
+        </TouchableOpacity>
       </View>
 
-      <View className="px-4 py-3 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-sm flex-row justify-between gap-2">
+      <View className="px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex-row gap-2.5">
         <CopilotStep
           text="Preview your resume and export it to PDF"
           order={2}
           name="preview"
         >
-          <WalkthroughableView className="flex-1">
-            <Button
-              title="Preview"
-              variant="outline"
+          <WalkthroughableView style={{ flex: 1 }}>
+            <TouchableOpacity
               onPress={() => setShowPreview(true)}
-              className="bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
-            />
+              className="flex-row items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl"
+            >
+              <Ionicons name="eye-outline" size={15} color="#64748B" />
+              <Text className="text-slate-600 dark:text-slate-300 text-xs font-bold">
+                Preview
+              </Text>
+            </TouchableOpacity>
           </WalkthroughableView>
         </CopilotStep>
         <CopilotStep
@@ -360,21 +369,31 @@ export default function ResumeEditor() {
           order={3}
           name="advanced_tools"
         >
-          <WalkthroughableView className="flex-row gap-3">
-            <Button
-              title="ATS Score"
-              variant="outline"
+          <WalkthroughableView
+            style={{ flexDirection: "row", flex: 2, gap: 8 }}
+          >
+            <TouchableOpacity
               onPress={checkATSScore}
-              loading={aiLoading}
-              className="flex-5 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
-            />
-            <Button
-              title="Cover Letter"
-              variant="outline"
+              disabled={aiLoading}
+              style={{ flex: 1, opacity: aiLoading ? 0.6 : 1 }}
+              className="flex-row items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 py-2.5 px-3 rounded-xl"
+            >
+              <Ionicons name="analytics-outline" size={15} color="#4F46E5" />
+              <Text className="text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+                ATS
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={generateCoverLetter}
-              loading={aiLoading}
-              className="flex-5 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-            />
+              disabled={aiLoading}
+              style={{ flex: 1, opacity: aiLoading ? 0.6 : 1 }}
+              className="flex-row items-center justify-center gap-1.5 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 py-2.5 px-3 rounded-xl"
+            >
+              <Ionicons name="mail-outline" size={15} color="#7C3AED" />
+              <Text className="text-violet-700 dark:text-violet-300 text-xs font-bold">
+                Cover Letter
+              </Text>
+            </TouchableOpacity>
           </WalkthroughableView>
         </CopilotStep>
       </View>
@@ -506,9 +525,9 @@ export default function ResumeEditor() {
             </View>
             <Input
               label="School / University"
-              value={item.school}
+              value={item.institution}
               onChangeText={(t) =>
-                handleUpdateItem("education", index, "school", t)
+                handleUpdateItem("education", index, "institution", t)
               }
             />
             <Input

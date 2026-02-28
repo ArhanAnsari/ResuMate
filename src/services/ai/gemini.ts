@@ -15,13 +15,11 @@ export const AIService = {
    * 2. Appwrite Function (Server-side Key)
    */
   async getApiKey(): Promise<string | null> {
-    // Check if hardcoded key exists first (from user setup)
-    const HARDCODED_KEY = "AIzaSyACgge8P2bmNlg-7cQ2aJJAzy1MUMV8xU4";
-    // Or return from storage
+    // Priority: user's own key → app default key
     const storedKey = await AsyncStorage.getItem(
       APP_CONFIG.GEMINI.API_KEY_STORAGE_KEY,
     );
-    return storedKey || HARDCODED_KEY;
+    return storedKey || APP_CONFIG.GEMINI.DEFAULT_API_KEY || null;
   },
 
   async getStoredApiKey(): Promise<string | null> {
@@ -110,15 +108,17 @@ export const AIService = {
 
   async enhanceResumeSection(
     sectionText: string,
-    type: "summary" | "education" | "work",
+    type: "summary" | "education" | "work" | "cover_letter" | "ats_score",
   ): Promise<string> {
-    const prompts = {
+    const prompts: Record<string, string> = {
       summary: `Rewrite this resume professional summary to be more impactful and concise. Use action verbs. Text: "${sectionText}"`,
       education: `Format and improve this education detail. Highlight key achievements. Text: "${sectionText}"`,
       work: `Rewrite these work experience bullet points to be results-oriented (STAR method). Text: "${sectionText}"`,
+      cover_letter: `Write a compelling, personalized cover letter based on this resume data. Keep it under 300 words, professional tone, and highlight top skills. Resume Data: ${sectionText}`,
+      ats_score: `Analyze this resume for ATS (Applicant Tracking System) compatibility. Give a score out of 100, list missing keywords, formatting issues, and specific improvement suggestions. Resume Data: ${sectionText}`,
     };
 
-    const res = await this.generate(prompts[type] || prompts.summary);
+    const res = await this.generate(prompts[type] ?? prompts.summary);
     return res.text;
   },
 };

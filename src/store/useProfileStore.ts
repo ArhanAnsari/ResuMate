@@ -1,5 +1,6 @@
 import { APP_CONFIG } from "@/src/core/config/app";
 import { appwrite } from "@/src/services/appwrite/client";
+import * as FileSystem from "expo-file-system/legacy";
 import { ID, Query } from "react-native-appwrite";
 import { create } from "zustand";
 
@@ -11,7 +12,7 @@ export interface Profile {
   location: string;
   phone: string;
   website: string;
-  avatarUrl?: string; // Future proofing
+  avatarUrl?: string;
 }
 
 interface ProfileState {
@@ -36,25 +37,28 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   uploadAvatar: async (userId: string, imageUri: string) => {
     set({ isLoading: true, error: null });
     try {
-      const file = {
-        name: `${userId}_${Date.now()}.jpg`,
-        type: "image/jpeg",
-        uri: imageUri,
-      } as any; // Cast for RN file object
+      // react-native-appwrite's createFile expects {name, type, size, uri}
+      const filename = `${userId}_${Date.now()}.jpg`;
+      const fileInfo = await FileSystem.getInfoAsync(imageUri);
+      const size = fileInfo.exists
+        ? ((fileInfo as FileSystem.FileInfo & { size?: number }).size ?? 0)
+        : 0;
 
       const uploaded = await appwrite.storage.createFile(
         APP_CONFIG.APPWRITE.BUCKET.AVATARS,
         ID.unique(),
-        file,
+        { name: filename, type: "image/jpeg", size, uri: imageUri },
       );
 
-      const avatarUrl = appwrite.storage.getFileView(
-        APP_CONFIG.APPWRITE.BUCKET.AVATARS,
-        uploaded.$id,
-      );
+      if (!uploaded?.$id) {
+        throw new Error("File upload failed — no file ID returned.");
+      }
 
-      // We call updateProfile which handles state update
-      await get().updateProfile(userId, { avatarUrl: avatarUrl.toString() });
+      const avatarUrl = appwrite.storage
+        .getFileViewURL(APP_CONFIG.APPWRITE.BUCKET.AVATARS, uploaded.$id)
+        .toString();
+
+      await get().updateProfile(userId, { avatarUrl });
       set({ isLoading: false });
     } catch (error: any) {
       console.error("Upload avatar error:", error);
