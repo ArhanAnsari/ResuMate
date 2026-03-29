@@ -3,7 +3,7 @@
   "projectName": "ResuMate",
   "functions": [
     {
-      "$id": "697472580038b88c51d2",
+      "$id": "69c8dca3003bf4ff9089",
       "name": "ai-generate",
       "runtime": "node-22.0",
       "path": "functions/ai_generate",

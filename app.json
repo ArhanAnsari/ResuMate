@@ -7,29 +7,43 @@
     "icon": "./assets/images/icon.png",
     "scheme": "resumate",
     "userInterfaceStyle": "automatic",
-
+    "splash": {
+      "image": "./assets/images/resumate-app-assets/android/splash/android-splash-1920x1920.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/resumate-app-assets/ios/icons/ios-icon-512.png",
+      "splash": {
+        "image": "./assets/images/resumate-app-assets/ios/splash/ios-splash-2732x2732.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      }
     },
     "android": {
+      "icon": "./assets/images/resumate-app-assets/android/icons/android-icon-512.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/images/resumate-app-assets/android/icons/android-icon-512.png"
+      },
+      "splash": {
+        "image": "./assets/images/resumate-app-assets/android/splash/android-splash-1920x1920.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/resumate-app-assets/ios/icons/ios-icon-72.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/resumate-app-assets/android/splash/android-splash-1920x1920.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -51,6 +65,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ced5c952-f7f1-46e5-83fa-39bf177e8017"
+      }
     }
   }
 }

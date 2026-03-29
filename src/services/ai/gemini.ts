@@ -15,11 +15,11 @@ export const AIService = {
    * 2. Appwrite Function (Server-side Key)
    */
   async getApiKey(): Promise<string | null> {
-    // Priority: user's own key → app default key
+    // Priority: user's own key
     const storedKey = await AsyncStorage.getItem(
       APP_CONFIG.GEMINI.API_KEY_STORAGE_KEY,
     );
-    return storedKey || APP_CONFIG.GEMINI.DEFAULT_API_KEY || null;
+    return storedKey || null;
   },
 
   async getStoredApiKey(): Promise<string | null> {

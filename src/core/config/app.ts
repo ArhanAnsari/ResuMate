@@ -12,17 +12,16 @@ export const APP_CONFIG = {
       AVATARS: "avatars",
     },
     FUNCTIONS: {
-      AI_GENERATE: "697472580038b88c51d2",
+      AI_GENERATE: "69c8dca3003bf4ff9089",
     },
   },
   GEMINI: {
-    MODEL_ID: "gemini-2.5-pro",
+    MODEL_ID: "gemini-2.5-flash",
     API_KEY_STORAGE_KEY: "gemini_api_key",
-    DEFAULT_API_KEY: "AIzaSyCdeT94P8SuK_3mELokrvEqMBZRroNVMz0",
   },
   LINKS: {
-    PRIVACY: "https://example.com/privacy",
-    TERMS: "https://example.com/terms",
+    PRIVACY: "https://resumate.appwrite.network/privacy",
+    TERMS: "https://resumate.appwrite.network/terms",
   },
   REVENUECAT: {
     // Replace with your actual RevenueCat API keys from app.revenuecat.com
