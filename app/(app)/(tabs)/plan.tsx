@@ -338,15 +338,31 @@ export default function PlanScreen() {
     }
   }, [user]);
 
-  const handleShowPaywall = async () => {
+  const handleShowPaywall = async (planId: "pro" | "premium") => {
     try {
-      const paywallResult = await RevenueCatUI.presentPaywall();
+      // Find the specific offering based on the tier they clicked
+      let offeringToPresent = offerings?.current ?? undefined; // Fallback to current/default
+
+      if (offerings?.all) {
+        if (planId === "pro" && offerings.all["pro"]) {
+          offeringToPresent = offerings.all["pro"];
+        } else if (planId === "premium" && offerings.all["premium"]) {
+          offeringToPresent = offerings.all["premium"];
+        }
+      }
+
+      // Present the paywall for that specific offering
+      const paywallResult = await RevenueCatUI.presentPaywall({
+        offering: offeringToPresent,
+      });
+
       if (
         paywallResult === PAYWALL_RESULT.PURCHASED ||
         paywallResult === PAYWALL_RESULT.RESTORED
       ) {
         await refreshPlan(); // Refresh user plan status
-        showToast("Welcome to ResuMate Pro!", "success");
+        const tierName = planId === "premium" ? "Premium" : "Pro";
+        showToast(`Welcome to ResuMate ${tierName}!`, "success");
       }
     } catch (e) {
       console.log("Error presenting paywall", e);
@@ -355,7 +371,7 @@ export default function PlanScreen() {
 
   const handleSelectPlan = async (plan: PlanConfig) => {
     if (plan.id === "free") return;
-    await handleShowPaywall();
+    await handleShowPaywall(plan.id as "pro" | "premium");
   };
 
   const handleRestorePurchases = async () => {
