@@ -4,7 +4,6 @@ import { Input } from "@/src/components/ui/Input";
 import { useToast } from "@/src/context/ToastContext";
 import { AIService } from "@/src/services/ai/gemini";
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { usePlanStore } from "@/src/store/usePlanStore";
 import { useProfileStore } from "@/src/store/useProfileStore";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +20,6 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import RevenueCatUI from "react-native-purchases-ui";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SettingRowProps {
@@ -84,7 +82,6 @@ const SectionTitle = ({ title }: { title: string }) => (
 export default function Settings() {
   const { user, logout } = useAuthStore();
   const { profile, fetchProfile } = useProfileStore();
-  const { currentPlan } = usePlanStore();
   const { hapticsEnabled, toggleHaptics } = useSettingsStore();
   const { showToast } = useToast();
   const router = useRouter();
@@ -190,60 +187,6 @@ export default function Settings() {
             <Text className="text-xs text-slate-400 mt-0.5">{user?.email}</Text>
             <Text className="text-xs text-indigo-500 font-semibold mt-1">
               Edit Profile
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-        </TouchableOpacity>
-
-        {/* Preferences */}
-        <SectionTitle title="Subscription" />
-        <TouchableOpacity
-          onPress={async () => {
-            if (currentPlan !== "free") {
-              try {
-                await RevenueCatUI.presentCustomerCenter();
-              } catch (error) {
-                console.error("Failed to present customer center", error);
-                router.push("/(app)/(tabs)/plan");
-              }
-            } else {
-              router.push("/(app)/(tabs)/plan");
-            }
-          }}
-          activeOpacity={0.88}
-          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex-row items-center gap-4"
-        >
-          <View
-            className="w-10 h-10 rounded-xl items-center justify-center"
-            style={{
-              backgroundColor:
-                currentPlan === "premium"
-                  ? "#7C3AED20"
-                  : currentPlan === "pro"
-                    ? "#4F46E520"
-                    : "#64748B20",
-            }}
-          >
-            <Ionicons
-              name="diamond-outline"
-              size={20}
-              color={
-                currentPlan === "premium"
-                  ? "#7C3AED"
-                  : currentPlan === "pro"
-                    ? "#4F46E5"
-                    : "#64748B"
-              }
-            />
-          </View>
-          <View className="flex-1">
-            <Text className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-              {currentPlan} Plan
-            </Text>
-            <Text className="text-xs text-slate-400 mt-0.5">
-              {currentPlan === "free"
-                ? "Upgrade to unlock all features"
-                : "Manage or change your plan"}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#94A3B8" />

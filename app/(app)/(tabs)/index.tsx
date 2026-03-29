@@ -3,7 +3,6 @@ import { Card } from "@/src/components/ui/Card";
 import { CustomAlert } from "@/src/components/ui/CustomAlert";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { SkeletonResumeCard } from "@/src/components/ui/SkeletonLoader";
-import { UpgradeBanner } from "@/src/components/ui/PremiumBadge";
 import { useToast } from "@/src/context/ToastContext";
 import { NotificationService } from "@/src/services/notifications/NotificationService";
 import { PDFService } from "@/src/services/pdf/PDFService";
@@ -292,13 +291,16 @@ export default function ResumeDashboard() {
         }
         ListFooterComponent={
           resumes.length > 0 && !isLoading ? (
-            <View className="mt-2">
-              <UpgradeBanner
-                title="Unlock AI-Powered Features"
-                subtitle="ATS scoring, cover letters & interview prep"
-                onPress={() => router.push("/(app)/(tabs)/ai")}
-              />
-            </View>
+            <View className="mt-2 bg-indigo-600 rounded-2xl p-4 flex-row items-center gap-3">
+                <Ionicons name="sparkles" size={20} color="#FDE68A" />
+                <View className="flex-1">
+                  <Text className="text-white font-bold text-sm">All AI Tools Are Free 🎉</Text>
+                  <Text className="text-indigo-200 text-xs">ATS scoring, cover letters & interview prep</Text>
+                </View>
+                <TouchableOpacity onPress={() => router.push("/(app)/(tabs)/ai")} className="bg-white/20 px-3 py-1.5 rounded-lg">
+                  <Text className="text-white font-bold text-xs">Try</Text>
+                </TouchableOpacity>
+              </View>
           ) : null
         }
         refreshControl={

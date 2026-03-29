@@ -1,8 +1,26 @@
-# Welcome to your Expo app 👋
+# ResuMate 🎉 — AI-Powered Resume Builder (100% Free)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ResuMate is an AI-powered resume builder and career assistant built with **Expo / React Native** and **Appwrite**.
 
-## Get started
+> **ResuMate is now 100% free for everyone.** All features are unlocked — no subscriptions, no paywalls, no plans.
+
+---
+
+## Features
+
+- 📄 **Unlimited resumes** — create and manage as many as you need
+- 🎨 **All 8 templates** — pick the perfect look
+- 📥 **PDF & Word export** — download in any format
+- 🤖 **Unlimited AI requests** — powered by Google Gemini
+- 📊 **ATS Score analysis** — optimise for applicant tracking systems
+- ✉️ **Cover Letter generator** — tailored letters in seconds
+- 🔍 **Keyword Match** — align your resume with any job description
+- 🎤 **Interview Prep** — targeted questions based on your resume
+- 👤 **Profile & avatar** — personalise your account
+
+---
+
+## Get Started
 
 1. Install dependencies
 
@@ -21,30 +39,18 @@ In the output, you'll find options to open the app in a
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Expo Go](https://docs.expo.dev/get-started/expo-go/)
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Learn More
 
-```bash
-npm run reset-project
-```
+- [Expo documentation](https://docs.expo.dev/)
+- [Appwrite documentation](https://appwrite.io/docs)
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Join the Community
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo on GitHub](https://github.com/expo/expo)
+- [Discord community](https://chat.expo.dev)

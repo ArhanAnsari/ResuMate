@@ -108,7 +108,7 @@ export const AIService = {
 
   async enhanceResumeSection(
     sectionText: string,
-    type: "summary" | "education" | "work" | "cover_letter" | "ats_score",
+    type: "summary" | "education" | "work" | "cover_letter" | "ats_score" | "keywords" | "interview",
   ): Promise<string> {
     const prompts: Record<string, string> = {
       summary: `Rewrite this resume professional summary to be more impactful and concise. Use action verbs. Text: "${sectionText}"`,
@@ -116,6 +116,8 @@ export const AIService = {
       work: `Rewrite these work experience bullet points to be results-oriented (STAR method). Text: "${sectionText}"`,
       cover_letter: `Write a compelling, personalized cover letter based on this resume data. Keep it under 300 words, professional tone, and highlight top skills. Resume Data: ${sectionText}`,
       ats_score: `Analyze this resume for ATS (Applicant Tracking System) compatibility. Give a score out of 100, list missing keywords, formatting issues, and specific improvement suggestions. Resume Data: ${sectionText}`,
+      keywords: `Compare this resume against the job description and identify missing keywords, skills, and phrases the resume should include to pass ATS and impress recruiters. Be specific and list the most important missing items. ${sectionText}`,
+      interview: `Based on this resume, generate 10 targeted interview questions a recruiter would likely ask, along with brief guidance on how to answer each one. ${sectionText}`,
     };
 
     const res = await this.generate(prompts[type] ?? prompts.summary);
