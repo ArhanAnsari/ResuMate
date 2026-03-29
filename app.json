@@ -32,7 +32,8 @@
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.arhanansari.ResuMate"
     },
     "web": {
       "output": "static",
