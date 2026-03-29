@@ -61,7 +61,11 @@
           "organization": "arhanansari"
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

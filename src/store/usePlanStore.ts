@@ -1,10 +1,10 @@
 import { APP_CONFIG } from "@/src/core/config/app";
 import { Platform } from "react-native";
 import Purchases, {
-    CustomerInfo,
-    LOG_LEVEL,
-    PurchasesOfferings,
-    PurchasesPackage,
+  CustomerInfo,
+  LOG_LEVEL,
+  PurchasesOfferings,
+  PurchasesPackage,
 } from "react-native-purchases";
 import { create } from "zustand";
 
@@ -25,8 +25,9 @@ interface PlanState {
 
 function resolvePlan(info: CustomerInfo): PlanTier {
   const active = info.entitlements.active;
-  if (active[APP_CONFIG.REVENUECAT.ENTITLEMENTS.PREMIUM]) return "premium";
+  // Use the exact entitlement ID defined for ResuMate Pro
   if (active[APP_CONFIG.REVENUECAT.ENTITLEMENTS.PRO]) return "pro";
+  if (active["premium"]) return "premium";
   return "free";
 }
 

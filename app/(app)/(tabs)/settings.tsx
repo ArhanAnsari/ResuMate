@@ -12,15 +12,16 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
-  Linking,
-  ScrollView,
-  StatusBar,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Linking,
+    ScrollView,
+    StatusBar,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import RevenueCatUI from "react-native-purchases-ui";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SettingRowProps {
@@ -197,7 +198,18 @@ export default function Settings() {
         {/* Preferences */}
         <SectionTitle title="Subscription" />
         <TouchableOpacity
-          onPress={() => router.push("/(app)/(tabs)/plan")}
+          onPress={async () => {
+            if (currentPlan !== "free") {
+              try {
+                await RevenueCatUI.presentCustomerCenter();
+              } catch (error) {
+                console.error("Failed to present customer center", error);
+                router.push("/(app)/(tabs)/plan");
+              }
+            } else {
+              router.push("/(app)/(tabs)/plan");
+            }
+          }}
           activeOpacity={0.88}
           className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex-row items-center gap-4"
         >

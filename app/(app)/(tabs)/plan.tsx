@@ -6,14 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Linking,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Plan definitions ────────────────────────────────────────────────────────
@@ -322,6 +323,7 @@ export default function PlanScreen() {
     isLoading,
     offerings,
     initPurchases,
+    refreshPlan,
     purchasePackage,
     restorePurchases,
   } = usePlanStore();
@@ -336,44 +338,24 @@ export default function PlanScreen() {
     }
   }, [user]);
 
+  const handleShowPaywall = async () => {
+    try {
+      const paywallResult = await RevenueCatUI.presentPaywall();
+      if (
+        paywallResult === PAYWALL_RESULT.PURCHASED ||
+        paywallResult === PAYWALL_RESULT.RESTORED
+      ) {
+        await refreshPlan(); // Refresh user plan status
+        showToast("Welcome to ResuMate Pro!", "success");
+      }
+    } catch (e) {
+      console.log("Error presenting paywall", e);
+    }
+  };
+
   const handleSelectPlan = async (plan: PlanConfig) => {
     if (plan.id === "free") return;
-
-    // Find the matching RevenueCat package
-    const currentOffering = offerings?.current;
-    if (!currentOffering) {
-      showToast("Store unavailable. Please try again later.", "error");
-      return;
-    }
-
-    // Match by billing cycle — RevenueCat packages: ANNUAL, MONTHLY, etc.
-    const pkg = currentOffering.availablePackages.find((p) => {
-      const isAnnual = billingCycle === "annual";
-      const packageType = p.packageType;
-      // Look for the right plan via product identifier convention
-      const id = p.product.identifier.toLowerCase();
-      const planMatch = id.includes(plan.id);
-      const cycleMatch = isAnnual
-        ? id.includes("annual")
-        : id.includes("monthly");
-      return planMatch && cycleMatch;
-    });
-
-    if (!pkg) {
-      showToast(
-        "Package not found. Make sure RevenueCat is configured.",
-        "error",
-      );
-      return;
-    }
-
-    setPurchasing(true);
-    const success = await purchasePackage(pkg);
-    setPurchasing(false);
-
-    if (success) {
-      showToast(`🎉 Welcome to ${plan.name}!`, "success");
-    }
+    await handleShowPaywall();
   };
 
   const handleRestorePurchases = async () => {
