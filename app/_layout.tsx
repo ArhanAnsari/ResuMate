@@ -1,7 +1,6 @@
 import "@/global.css";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { useAuthStore } from "@/src/store/useAuthStore";
-import { usePlanStore } from "@/src/store/usePlanStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
@@ -53,7 +52,6 @@ if (Constants.appOwnership !== "expo") {
 
 export default function RootLayout() {
   const { isAuthenticated, initialize, isLoading } = useAuthStore();
-  const { initPurchases } = usePlanStore();
   const router = useRouter();
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -65,15 +63,6 @@ export default function RootLayout() {
       setOnboardingChecked(true);
     });
   }, []);
-
-  // Initialize RevenueCat once the user is authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      const { user } = useAuthStore.getState();
-      initPurchases(user?.$id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
 
   // Navigate based purely on auth/onboarding state.
   // Do NOT include `segments` or `router` as deps — doing so causes an infinite

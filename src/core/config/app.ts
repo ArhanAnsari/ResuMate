@@ -23,18 +23,5 @@ export const APP_CONFIG = {
     PRIVACY: "https://resumate.appwrite.network/privacy",
     TERMS: "https://resumate.appwrite.network/terms",
   },
-  REVENUECAT: {
-    // Replace with your actual RevenueCat API keys from app.revenuecat.com
-    IOS_API_KEY: "test_RvqSPPncOyOmMmpxoJxpzlwPprX",
-    ANDROID_API_KEY: "test_RvqSPPncOyOmMmpxoJxpzlwPprX",
-    ENTITLEMENTS: {
-      PRO: "ResuMate Pro",
-      PREMIUM: "ResuMate Premium",
-    },
-    PRODUCTS: {
-      MONTHLY: "monthly",
-      YEARLY: "yearly",
-      LIFETIME: "lifetime",
-    },
-  },
+
 };
